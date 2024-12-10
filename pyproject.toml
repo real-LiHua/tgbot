@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "tgbot"
+version = "0.1.0"
+description = ""
+authors = ["Li Hua <lihua@email.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+python-telegram-bot = {extras = ["http2"], version = "^21.8"}
+python-dotenv = "^1.0.1"
+huggingface-hub = "^0.26.5"
+aiohttp = "^3.11.10"
+telethon = "^1.38.1"
+python-socks = {extras = ["asyncio"], version = "^2.5.3"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
