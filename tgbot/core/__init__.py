@@ -1,5 +1,4 @@
 from huggingface_hub import AsyncInferenceClient
-from huggingface_hub import create_repo
 
 prompt = [{"role":"system", "content":rf"""
 你是一个 Telegram 频道/群组 助手
@@ -46,6 +45,5 @@ Please note:
 """}]
 
 client = AsyncInferenceClient()
-create_repo("lihua114514/test-dataset", private=True, repo_type="dataset")
 async def init(bot):
     pass
