@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from os import getenv
+from os import getenv,makedirs
 from os.path import join
 
 from dotenv import load_dotenv
@@ -33,6 +33,7 @@ except ImportError:
 
 
 async def main():
+    makedirs("env", exist_ok=True)
     bot = TelegramClient(join("env", "bot"), 611335, "d524b414d21f4d37f08684c1df41ac9c")
     await bot.start(bot_token=getenv("BOT_TOKEN"))
     try:
