@@ -1,9 +1,9 @@
 ---
 title: Group
-emoji: 🐨
+emoji: 👁
 colorFrom: yellow
 colorTo: yellow
-sdk: static
+sdk: docker
 pinned: false
 ---
 
