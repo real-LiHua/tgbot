@@ -46,5 +46,5 @@ client = AsyncInferenceClient()
 
 
 async def init(bot):
-    async for message in client.iter_messages(1042436080):
+    async for message in bot.iter_messages(1042436080):
         print(message.id, message.text, file=sys.syserr)
