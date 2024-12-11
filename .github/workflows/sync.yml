@@ -10,14 +10,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: |
-        sudo apt install -y git-lfs
         mkdir -p ~/.ssh
-        echo "${{ secrets.ssh_key }}" >> ~/.ssh/mirror
+        echo "${{ secrets.SSH_KEY }}" >> ~/.ssh/mirror
         chmod 600 ~/.ssh/mirror
-        echo ${{ secrets.fingerprint }} >> ~/.ssh/known_hosts
+        echo ${{ secrets.FINGERPRINT }} >> ~/.ssh/known_hosts
         chmod 600 ~/.ssh/known_hosts
         export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror"
-        git lfs install
-        git remote add mirror ${{ secrets.repo }}
+        export HF_TOKEN=${{ secrets.HF_TOKEN }}
+        python3 -m venv .
+        . bin/activate
+        pip install -U  "huggingface_hub[cli]"
+        git remote add mirror ${{ secrets.REPO }}
         git push -f mirror slave:main
         
