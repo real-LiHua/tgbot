@@ -15,7 +15,7 @@ jobs:
         chmod 600 ~/.ssh/mirror
         echo ${{ secrets.fingerprint }} >> ~/.ssh/known_hosts
         chmod 600 ~/.ssh/known_hosts
-        git remote add mirrror ${{ secrets.repo }}
+        git remote add mirror ${{ secrets.repo }}
         export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror"
         git push -f mirror slave:main
         
