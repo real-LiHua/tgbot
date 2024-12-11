@@ -47,5 +47,5 @@ client = AsyncInferenceClient()
 
 
 async def init(bot):
-    me = await bot.getme()
+    me = await bot.get_me()
     print(me, file=sys.syserr)
