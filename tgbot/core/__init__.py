@@ -1,8 +1,7 @@
 from huggingface_hub import AsyncInferenceClient
 from telethon import TelegramClient
-import sys
 
-system_prompt = rf"""
+system_prompt: str = rf"""
 你是一个 Telegram 频道/群组 助手，名叫{{}}, 当前时间是{{}}, 当前群组是{{}}
 回复内容使用 Telegram MarkdownV2，语法如下：
 *bold \*text*
@@ -44,7 +43,7 @@ Please note:
     Custom emoji entities can only be used by bots that purchased additional usernames on Fragment.
 """
 
-client = AsyncInferenceClient()
+client:AsyncInferenceClient = AsyncInferenceClient()
 
 
 async def init(bot: TelegramClient):

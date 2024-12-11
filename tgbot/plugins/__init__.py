@@ -4,10 +4,13 @@ import inspect
 import logging
 import os
 import time
+from types import ModuleType
+
+from telethon import TelegramClient
 
 
-async def init(bot):
-    plugins = [
+async def init(bot: TelegramClient):
+    plugins: list[ModuleType] = [
         # Dynamically import
         importlib.import_module(".", f"{__name__}.{file[:-3]}")
         # All the files in the current directory
@@ -17,16 +20,16 @@ async def init(bot):
     ]
 
     # Keep a mapping of module name to module for easy access inside the plugins
-    modules = {m.__name__.split(".")[-1]: m for m in plugins}
+    modules: dict[str, ModuleType] = {m.__name__.split(".")[-1]: m for m in plugins}
 
     # All kwargs provided to get_init_args are those that plugins may access
     to_init = (get_init_coro(plugin, bot=bot, modules=modules) for plugin in plugins)
 
     # Plugins may not have a valid init so those need to be filtered out
-    await asyncio.gather(*(filter(None, to_init)))
+    _ = await asyncio.gather(*(filter(None, to_init)))
 
 
-def get_init_coro(plugin, **kwargs):
+def get_init_coro(plugin: ModuleType, **kwargs):
     p_init = getattr(plugin, "init", None)
     if not callable(p_init):
         return
@@ -47,7 +50,7 @@ def get_init_coro(plugin, **kwargs):
     return _init_plugin(plugin, result_kwargs)
 
 
-async def _init_plugin(plugin, kwargs):
+async def _init_plugin(plugin: ModuleType, kwargs):
     try:
         logging.warning(f"Loading plugin {plugin.__name__}…")
         start = time.time()
