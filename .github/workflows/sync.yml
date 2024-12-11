@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: |
-        apt install -y git-lfs
+        sudo apt install -y git-lfs
         mkdir -p ~/.ssh
         echo "${{ secrets.ssh_key }}" >> ~/.ssh/mirror
         chmod 600 ~/.ssh/mirror
