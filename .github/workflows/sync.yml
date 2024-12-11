@@ -10,12 +10,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: |
+        apt install -y git-lfs
         mkdir -p ~/.ssh
         echo "${{ secrets.ssh_key }}" >> ~/.ssh/mirror
         chmod 600 ~/.ssh/mirror
         echo ${{ secrets.fingerprint }} >> ~/.ssh/known_hosts
         chmod 600 ~/.ssh/known_hosts
-        git remote add mirror ${{ secrets.repo }}
         export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror"
+        git lfs install
+        git remote add mirror ${{ secrets.repo }}
         git push -f mirror slave:main
         
