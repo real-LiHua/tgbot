@@ -20,6 +20,7 @@ jobs:
         # python3 -m venv .
         # . bin/activate
         # pip install -U  "huggingface_hub[cli]"
+        git lfs install
         git remote add mirror ${{ secrets.REPO }}
         GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push -f mirror slave:main
         
