@@ -16,10 +16,10 @@ jobs:
         echo ${{ secrets.FINGERPRINT }} >> ~/.ssh/known_hosts
         chmod 600 ~/.ssh/known_hosts
         export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror"
-        export HF_TOKEN=${{ secrets.HF_TOKEN }}
-        python3 -m venv .
-        . bin/activate
-        pip install -U  "huggingface_hub[cli]"
+        # export HF_TOKEN=${{ secrets.HF_TOKEN }}
+        # python3 -m venv .
+        # . bin/activate
+        # pip install -U  "huggingface_hub[cli]"
         git remote add mirror ${{ secrets.REPO }}
-        git push -f mirror slave:main
+        GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push -f mirror slave:main
         
