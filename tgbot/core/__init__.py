@@ -1,4 +1,5 @@
 from huggingface_hub import AsyncInferenceClient
+from telethon import TelegramClient
 import sys
 
 system_prompt = rf"""
@@ -46,6 +47,5 @@ Please note:
 client = AsyncInferenceClient()
 
 
-async def init(bot):
-    me = await bot.get_me()
-    print(me, file=sys.syserr)
+async def init(bot: TelegramClient):
+    pass

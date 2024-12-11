@@ -1,0 +1,6 @@
+import tensorflow as tf
+from .. import constants as constants
+from ._base import MAX_SHARD_SIZE as MAX_SHARD_SIZE, StateDictSplit as StateDictSplit, split_state_dict_into_shards_factory as split_state_dict_into_shards_factory
+
+def split_tf_state_dict_into_shards(state_dict: dict[str, 'tf.Tensor'], *, filename_pattern: str = ..., max_shard_size: int | str = ...) -> StateDictSplit: ...
+def get_tf_storage_size(tensor: tf.Tensor) -> int: ...

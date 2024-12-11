@@ -1,0 +1,3 @@
+from . import AccountMethods as AccountMethods, AuthMethods as AuthMethods, BotMethods as BotMethods, ButtonMethods as ButtonMethods, ChatMethods as ChatMethods, DialogMethods as DialogMethods, DownloadMethods as DownloadMethods, MessageMethods as MessageMethods, MessageParseMethods as MessageParseMethods, TelegramBaseClient as TelegramBaseClient, UpdateMethods as UpdateMethods, UploadMethods as UploadMethods, UserMethods as UserMethods
+
+class TelegramClient(AccountMethods, AuthMethods, DownloadMethods, DialogMethods, ChatMethods, BotMethods, MessageMethods, UploadMethods, ButtonMethods, UpdateMethods, MessageParseMethods, UserMethods, TelegramBaseClient): ...

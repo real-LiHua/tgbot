@@ -1,0 +1,7 @@
+from .connection import Connection as Connection
+from .http import ConnectionHttp as ConnectionHttp
+from .tcpabridged import ConnectionTcpAbridged as ConnectionTcpAbridged
+from .tcpfull import ConnectionTcpFull as ConnectionTcpFull
+from .tcpintermediate import ConnectionTcpIntermediate as ConnectionTcpIntermediate
+from .tcpmtproxy import ConnectionTcpMTProxyAbridged as ConnectionTcpMTProxyAbridged, ConnectionTcpMTProxyIntermediate as ConnectionTcpMTProxyIntermediate, ConnectionTcpMTProxyRandomizedIntermediate as ConnectionTcpMTProxyRandomizedIntermediate, TcpMTProxy as TcpMTProxy
+from .tcpobfuscated import ConnectionTcpObfuscated as ConnectionTcpObfuscated

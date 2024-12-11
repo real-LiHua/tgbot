@@ -1,0 +1,29 @@
+from .. import errors as errors, helpers as helpers, hints as hints, utils as utils
+from ..crypto import AES as AES
+from ..requestiter import RequestIter as RequestIter
+from ..tl import TLObject as TLObject, functions as functions, types as types
+from .telegramclient import TelegramClient as TelegramClient
+from _typeshed import Incomplete
+
+MIN_CHUNK_SIZE: int
+MAX_CHUNK_SIZE: Incomplete
+TIMED_OUT_SLEEP: int
+
+class _CdnRedirect(Exception):
+    cdn_redirect: Incomplete
+    def __init__(self, cdn_redirect: Incomplete | None = None) -> None: ...
+
+class _DirectDownloadIter(RequestIter):
+    async def close(self) -> None: ...
+    async def __aenter__(self): ...
+    async def __aexit__(self, *args) -> None: ...
+    __enter__: Incomplete
+    __exit__: Incomplete
+
+class _GenericDownloadIter(_DirectDownloadIter): ...
+
+class DownloadMethods:
+    async def download_profile_photo(self, entity: hints.EntityLike, file: hints.FileLike = None, *, download_big: bool = True) -> str | None: ...
+    async def download_media(self, message: hints.MessageLike, file: hints.FileLike = None, *, thumb: int | types.TypePhotoSize = None, progress_callback: hints.ProgressCallback = None) -> str | bytes | None: ...
+    async def download_file(self, input_location: hints.FileLike, file: hints.OutFileLike = None, *, part_size_kb: float = None, file_size: int = None, progress_callback: hints.ProgressCallback = None, dc_id: int = None, key: bytes = None, iv: bytes = None) -> bytes | None: ...
+    def iter_download(self, file: hints.FileLike, *, offset: int = 0, stride: int = None, limit: int = None, chunk_size: int = None, request_size: int = ..., file_size: int = None, dc_id: int = None): ...

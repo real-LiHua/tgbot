@@ -1,0 +1,14 @@
+from .account import AccountMethods as AccountMethods
+from .auth import AuthMethods as AuthMethods
+from .bots import BotMethods as BotMethods
+from .buttons import ButtonMethods as ButtonMethods
+from .chats import ChatMethods as ChatMethods
+from .dialogs import DialogMethods as DialogMethods
+from .downloads import DownloadMethods as DownloadMethods
+from .messageparse import MessageParseMethods as MessageParseMethods
+from .messages import MessageMethods as MessageMethods
+from .telegrambaseclient import TelegramBaseClient as TelegramBaseClient
+from .telegramclient import TelegramClient as TelegramClient
+from .updates import UpdateMethods as UpdateMethods
+from .uploads import UploadMethods as UploadMethods
+from .users import UserMethods as UserMethods

@@ -1,0 +1,9 @@
+from ..constants import ENDPOINT as ENDPOINT
+from ._subprocess import run_interactive_subprocess as run_interactive_subprocess, run_subprocess as run_subprocess
+from _typeshed import Incomplete
+
+GIT_CREDENTIAL_REGEX: Incomplete
+
+def list_credential_helpers(folder: str | None = None) -> list[str]: ...
+def set_git_credential(token: str, username: str = 'hf_user', folder: str | None = None) -> None: ...
+def unset_git_credential(username: str = 'hf_user', folder: str | None = None) -> None: ...

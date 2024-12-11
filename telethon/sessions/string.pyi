@@ -1,0 +1,13 @@
+from ..crypto import AuthKey as AuthKey
+from .abstract import Session as Session
+from .memory import MemorySession as MemorySession
+
+CURRENT_VERSION: str
+
+class StringSession(MemorySession):
+    def __init__(self, string: str = None) -> None: ...
+    @staticmethod
+    def encode(x: bytes) -> str: ...
+    @staticmethod
+    def decode(x: str) -> bytes: ...
+    def save(self): ...
