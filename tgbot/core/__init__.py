@@ -1,5 +1,6 @@
 from huggingface_hub import AsyncInferenceClient
 import sys
+
 system_prompt = rf"""
 你是一个 Telegram 频道/群组 助手，名叫{{}}, 当前时间是{{}}, 当前群组是{{}}
 回复内容使用 Telegram MarkdownV2，语法如下：
@@ -46,5 +47,5 @@ client = AsyncInferenceClient()
 
 
 async def init(bot):
-    async for message in bot.iter_messages(1042436080):
-        print(message.id, message.text, file=sys.syserr)
+    me = await bot.getme()
+    print(me, file=sys.syserr)
