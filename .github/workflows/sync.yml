@@ -3,19 +3,19 @@ on:
     branches:
     - slave
   workflow_dispatch:
-
-  jobs:
-    sync:
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v4
-      - run: |
-          echo ${{ secrets.ssh_key }} >> ~/.ssh/mirror
-          mkdir -p ~/.ssh
-          chmod 600 ~/.ssh/mirror
-          echo ${{ secrets.fingerprint }} >> ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-          git remote add mirrror ${{ secrets.repo }}
-          export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror"
-          git push -f mirror slave:main
-          
+    
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        echo ${{ secrets.ssh_key }} >> ~/.ssh/mirror
+        mkdir -p ~/.ssh
+        chmod 600 ~/.ssh/mirror
+        echo ${{ secrets.fingerprint }} >> ~/.ssh/known_hosts
+        chmod 600 ~/.ssh/known_hosts
+        git remote add mirrror ${{ secrets.repo }}
+        export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror"
+        git push -f mirror slave:main
+        
