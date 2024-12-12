@@ -1,27 +1,32 @@
 import asyncio
-from os import getenv
-from dotenv import load_dotenv
-from telethon import TelegramClient
 import logging
+from os import getenv
+
+from dotenv import load_dotenv
+
+from telethon import TelegramClient
 from telethon.sessions import MemorySession
-from . import core
-from . import plugins
+
+from . import core, plugins
+from .core.data import Data
 
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger("asyncio").setLevel(logging.ERROR)
-_ = load_dotenv()
+load_dotenv()
 
 
 async def main():
-    bot:TelegramClient = TelegramClient(
+    bot: TelegramClient = TelegramClient(
         MemorySession(), 611335, "d524b414d21f4d37f08684c1df41ac9c"
-    ).start(bot_token=getenv("BOT_TOKEN", ""))
+    )
+    await bot.start(bot_token=getenv("BOT_TOKEN", ""))
     try:
-        await core.init(bot)
+        data = Data(3)
+        await core.init(bot, data)
         await plugins.init(bot)
-        bot.run_until_disconnected()
+        await bot.run_until_disconnected()
     finally:
-        bot.disconnect()
+        await bot.disconnect()
 
 
 asyncio.run(main())

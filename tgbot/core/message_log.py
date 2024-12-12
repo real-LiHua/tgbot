@@ -1,8 +1,8 @@
-from telethon import events
-from telethon import TelegramClient
+from telethon import TelegramClient, events
+from .data import Data
 
 
-async def init(bot: TelegramClient):
-    @bot.on(events.NewMessage)
+async def init(bot: TelegramClient, data: Data):
+    @bot.on(events.NewMessage())
     async def message_log(event: events.NewMessage.Event):
-        pass
+        data.user(event)

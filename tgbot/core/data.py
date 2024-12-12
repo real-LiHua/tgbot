@@ -1,9 +1,12 @@
-from collections import deque
+from collections import defaultdict, deque
+from collections.abc import Callable
+from json import dumps
 from telethon import events
+
 from .cli import parser
 
 system_prompt: str = r"""
-你是一个 Telegram 频道/群组 助手，名叫{{name}}, 当前时间是{{time}}, 当前群组是{{chat}}
+你是一个 Telegram 频道/群组 助手，当前时间是{{time}}, 当前群组是{{chat}}
 
 回复内容默认使用 Telegram MarkdownV2，语法如下：
 *bold \*text*
@@ -50,15 +53,37 @@ Please note:
 """.format(help=parser.format_help())
 
 
-class Data(deque[dict[str, str]]):
+class Data(defaultdict[str, deque[dict[str, str]]]):
     def __init__(self, maxlen: int | None = None):
-        super().__init__([{"role": "system", "content": ""}], maxlen=maxlen)
+        def constant_factory(
+            maxlen: int | None = None,
+        ) -> Callable[[], deque[dict[str, str]]]:
+            return lambda: deque(maxlen=maxlen)
+
+        super().__init__(constant_factory(maxlen))
 
     def system(self, event: events.NewMessage.Event):
-        self[0] = {"role": "system", "content": system_prompt.format()}
+        content = system_prompt.format(
+            time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"), chat=""
+        )
+        if self[str(event.chat_id)]:
+            self[str(event.chat_id)][0] = {"role": "system", "content": content}
+        else:
+            self[str(event.chat_id)].append({"role": "system", "content": content})
 
     def user(self, event: events.NewMessage.Event):
-        self.append({"role": "user", "content": "".format()})
+        self.system(event)
+        self[str(event.chat_id)].append(
+            {
+                "role": "user",
+                "content": "{user}于{time}在{chat}说道：{text}".format(
+                    user="", time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"), chat="", text=event.text
+                ),
+            }
+        )
 
     def assistant(self, event: events.NewMessage.Event):
-        self.append({"role": "assistant", "content": "".format()})
+        self[str(event.chat_id)].append({"role": "assistant", "content": "".format()})
+
+    def get_data(self, chat_id:int):
+        return dumps(list(self[str(chat_id)]))
