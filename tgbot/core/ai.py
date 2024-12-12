@@ -10,6 +10,6 @@ async def init(bot: TelegramClient, data: Data):
     async def handler(event: events.NewMessage.Event):
         response = await client.chat_completion(
             data.get_data(event.chat_id),
-            model="Qwen/Qwen2.5-72B-Instruct",
+            model="Qwen/Qwen2.5-7B-Instruct",
         )
         await event.reply(response.choices[0].message.content)
