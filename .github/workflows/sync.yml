@@ -10,17 +10,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_KEY }}" >> ~/.ssh/mirror
-        chmod 600 ~/.ssh/mirror
-        echo ${{ secrets.FINGERPRINT }} >> ~/.ssh/known_hosts
-        chmod 600 ~/.ssh/known_hosts
-        export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror"
-        # export HF_TOKEN=${{ secrets.HF_TOKEN }}
-        # python3 -m venv .
-        # . bin/activate
-        # pip install -U  "huggingface_hub[cli]"
-        git lfs install
-        git remote add mirror ${{ secrets.REPO }}
-        GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push -f mirror slave:main
-        
+        git config user.name 'github-actions[bot]'
+        git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m 'sync'
+        git push ${{ secrets.REPO_URL }} slave:main -f
