@@ -9,9 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: |
-        git config user.name 'github-actions[bot]'
-        git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-        git add .
-        git commit --allow-empty -m sync
-        git push ${{ secrets.REPO_URL }} slave:main -f
+      with:
+          fetch-depth: 0
+          lfs: true
+    - run: git push ${{ secrets.REPO_URL }} slave:main -f
