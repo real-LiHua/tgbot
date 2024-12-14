@@ -4,9 +4,9 @@ import time
 from telethon import TelegramClient, events
 
 
-async def init(bot:TelegramClient):
+async def init(bot: TelegramClient):
     @bot.on(events.NewMessage(pattern="/ping", forwards=False))
-    async def handler(event:events.NewMessage.Event):
+    async def handler(event: events.NewMessage.Event):
         s = time.time()
         message = await event.reply("Pong!")
         d = time.time() - s

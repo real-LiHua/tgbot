@@ -58,32 +58,38 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         def constant_factory(
             maxlen: int | None = None,
         ) -> Callable[[], deque[dict[str, str]]]:
-            return lambda: deque(maxlen=maxlen)
+            return lambda: deque([{"role": "system", "content": ""}], maxlen=maxlen)
 
-        super().__init__(constant_factory(maxlen))
+        if maxlen:
+            super().__init__(constant_factory(maxlen + 1))
+        else:
+            super().__init__(constant_factory())
 
     def system(self, event: events.NewMessage.Event):
-        content = system_prompt.format(
-            time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"), chat=""
-        )
-        if self[str(event.chat_id)]:
-            self[str(event.chat_id)][0] = {"role": "system", "content": content}
-        else:
-            self[str(event.chat_id)].append({"role": "system", "content": content})
+        self[str(event.chat_id)][0] = {
+            "role": "system",
+            "content": system_prompt.format(
+                time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"), chat=""
+            ),
+        }
 
     def user(self, event: events.NewMessage.Event):
-        self.system(event)
         self[str(event.chat_id)].append(
             {
                 "role": "user",
                 "content": "{user}于{time}在{chat}说道：{text}".format(
-                    user="", time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"), chat="", text=event.text
+                    user="",
+                    time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"),
+                    chat="",
+                    text=event.text,
                 ),
             }
         )
+        self.system(event)
 
     def assistant(self, event: events.NewMessage.Event):
         self[str(event.chat_id)].append({"role": "assistant", "content": "".format()})
+        self.system(event)
 
-    def get_data(self, chat_id:int):
+    def get_data(self, chat_id: int):
         return dumps(list(self[str(chat_id)]))
