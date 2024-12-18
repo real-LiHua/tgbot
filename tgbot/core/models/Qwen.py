@@ -1,7 +1,8 @@
-from huggingface_hub import InferenceClient
+from huggingface_hub import AsyncInferenceClient
 from dotenv import load_dotenv
+import asyncio
 load_dotenv()
-client = InferenceClient()
+client = AsyncInferenceClient()
 
 messages = [
 	{
@@ -10,10 +11,11 @@ messages = [
 	}
 ]
 
-completion = client.chat.completions(
-    model="Qwen/Qwen2.5-72B-Instruct", 
+async def main():
+    completion = await client.chat_completion(
+        model="Qwen/Qwen2.5-72B-Instruct", 
 	messages=messages, 
 	#max_tokens=500
-)
-
-print(completion.choices[0].message)
+    )
+    print(completion.choices[0].message)
+asyncio.run(main())
