@@ -17,7 +17,7 @@ async def callback(command: str, event: NewMessage.Event | None = None):
     if args.ban:
         for item in args.ban:
             user, *time = item.split(":")
-            time = time or time[0]
+            time = time[0] if time else None
             print(time)
 
 
