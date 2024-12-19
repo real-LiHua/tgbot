@@ -17,13 +17,13 @@ load_dotenv()
 
 async def main():
     bot: TelegramClient = TelegramClient(
-        MemorySession(), 611335, "d524b414d21f4d37f08684c1df41ac9c"
+        "site/bot", 611335, "d524b414d21f4d37f08684c1df41ac9c"
     )
     await bot.start(bot_token=getenv("BOT_TOKEN", ""))
     try:
         data = Data(3)
         await core.init(bot, data)
-        await plugins.init(bot)
+        # await plugins.init(bot)
         await bot.run_until_disconnected()
     finally:
         await bot.disconnect()

@@ -1,18 +1,29 @@
 from argparse import ArgumentParser
 
-parser = ArgumentParser("telegramctl", add_help=False)
-group = parser.add_argument_group("admin")
-group.add_argument("--promote", nargs="+", help="提权", metavar=("用户", "权限"))
-group.add_argument("--demote", nargs="+", help="降权", metavar=("用户", "权限"))
-parser.add_argument(
-    "--mute", nargs="+", help="静言", metavar=("[持续时间] 用户", "用户")
-)
-parser.add_argument("--unmute", nargs="+", help="解除静言", metavar="用户")
-parser.add_argument("--kick", nargs="+", help="踢出", metavar="用户")
-parser.add_argument(
-    "--ban", nargs="+", help="封禁", metavar=("[持续时间] 用户", "用户")
-)
-parser.add_argument("--unban", nargs="+", help="解除封禁", metavar="用户")
+from telethon.events import NewMessage
+
+parser = ArgumentParser("telegramctl", add_help=False, exit_on_error=False)
+parser.add_argument("--promote", nargs="+", help="提权", metavar=("用户", "权限"))
+parser.add_argument("--demote", nargs="+", help="降权", metavar=("用户", "权限"))
+parser.add_argument("--mute", action="append", help="静言", metavar="用户[:持续时间]")
+parser.add_argument("--unmute", action="append", help="解除静言", metavar="用户")
+parser.add_argument("--kick", action="append", help="踢出", metavar="用户")
+parser.add_argument("--ban", action="append", help="封禁", metavar="用户[:持续时间]")
+parser.add_argument("--unban", action="append", help="解除封禁", metavar="用户")
+
+
+async def callback(command: str, event: NewMessage.Event | None = None):
+    args = parser.parse_args(command.split(" "))
+    if args.ban:
+        for item in args.ban:
+            user, *time = item.split(":")
+            time = time or time[0]
+            print(time)
+
+
 if __name__ == "__main__":
+    import asyncio
+    import sys
+
     parser.print_help()
-    print(parser.parse_args())
+    asyncio.run(callback(" ".join(sys.argv[1:])))
