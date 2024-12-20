@@ -36,16 +36,34 @@ _ * [ ] ( ) ~ ` > # + - = | {{{{ }}}} . !
 快来和喵酱一起愉快地玩耍吧！(=^･ω･^=)
 
 注意：当需要发出“telegramctl”命令时，请严肃对待，不要使用任何调皮或可爱的语气。
-""".format(
-        help=parser.format_help()
-    )
+""".format(help=parser.format_help())
 
 
 class Data(defaultdict[str, deque[dict[str, str]]]):
+    """
+    A class to manage chat data for a Telegram bot.
+
+    Inherits from defaultdict with keys as chat IDs and values as deques of messages.
+    """
     def __init__(self, maxlen: int | None = None):
+        """
+        Initialize the Data object.
+
+        Args:
+            maxlen (int | None): Maximum length of the deque for each chat.
+        """
         def constant_factory(
             maxlen: int | None = None,
         ) -> Callable[[], deque[dict[str, str]]]:
+            """
+            Create a factory function that returns a deque with a system message.
+
+            Args:
+                maxlen (int | None): Maximum length of the deque.
+
+            Returns:
+                Callable[[], deque[dict[str, str]]]: A factory function.
+            """
             return lambda: deque([{"role": "system", "content": ""}], maxlen=maxlen)
 
         if maxlen:
@@ -54,12 +72,18 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
             super().__init__(constant_factory())
 
     def system(self, event: events.NewMessage.Event) -> None:
+        """
+        Add or update the system message for a chat.
+
+        Args:
+            event (events.NewMessage.Event): The event containing chat information.
+        """
         self[str(event.chat_id)][0] = {
             "role": "system",
             "content": system_prompt.format(
                 time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"),
                 chat=(
-                    f"[{event.chat.title}](https://t.me/c/{event.chat_id}/{event.id})"
+                    f"[{event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]}/{event.id})"
                     if event.is_group
                     else "私聊"
                 ),
@@ -67,21 +91,37 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         }
 
     def user(self, event: events.NewMessage.Event) -> None:
+        """
+        Add a user message to the chat.
+
+        Args:
+            event (events.NewMessage.Event): The event containing message information.
+        """
         if event.is_group:
-            chat = f"[{event.chat.title}](https://t.me/c/{event.chat_id}/{event.id})"
+            chat = f"[{event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]}/{event.id})"
         else:
             chat = "私聊"
         if event.sender:
             user = f"[{event.sender.first_name}](tg://user?id={event.sender_id})"
         else:
             user = chat
+        if event.fwd_from:
+            if event.fwd_from.from_id:
+                fwd_user = f"[{event.fwd_from.from_name}](tg://user?id={event.fwd_from.from_id})"
+            else:
+                fwd_user = event.fwd_from.from_name or "未知用户"
+            fwd_text = f"转发自 {fwd_user} 的消息，内容为"
+        else:
+            fwd_text = "说道"
+
         self[str(event.chat_id)].append(
             {
                 "role": "user",
-                "content": "{user} 于 {time} 在 {chat} 说道： {text}".format(
+                "content": "{user} 于 {time} 在 {chat} {fwd_text}：{text}".format(
                     user=user,
                     time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"),
                     chat=chat,
+                    fwd_text=fwd_text,
                     text=event.text,
                 ),
             }
@@ -89,8 +129,23 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         self.system(event)
 
     def assistant(self, event: events.NewMessage.Event) -> None:
+        """
+        Add an assistant message to the chat.
+
+        Args:
+            event (events.NewMessage.Event): The event containing message information.
+        """
         self[str(event.chat_id)].append({"role": "assistant", "content": event.text})
         self.system(event)
 
     def get_data(self, chat_id: int) -> list[dict[str, str]]:
+        """
+        Get the data for a specific chat.
+
+        Args:
+            chat_id (int): The ID of the chat.
+
+        Returns:
+            list[dict[str, str]]: A list of messages in the chat.
+        """
         return list(self[str(chat_id)])

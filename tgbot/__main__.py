@@ -16,6 +16,9 @@ load_dotenv()
 
 
 async def main():
+    """
+    Main function to initialize and run the Telegram bot.
+    """
     Path("site").mkdir(exist_ok=True)
     bot: TelegramClient = TelegramClient(
         "site/bot", 611335, "d524b414d21f4d37f08684c1df41ac9c"

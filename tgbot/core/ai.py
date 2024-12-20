@@ -8,14 +8,29 @@ from telethon import TelegramClient, events
 from .cli import callback
 from .data import Data
 
+# Load environment variables from a .env file
 load_dotenv()
 
+# Initialize the Hugging Face Async Inference Client
 client = AsyncInferenceClient()
 
 
 async def init(bot: TelegramClient, data: Data):
+    """
+    Initialize the bot with an event handler for AI responses.
+
+    Args:
+        bot (TelegramClient): The Telegram client instance.
+        data (Data): The data instance containing chat data.
+    """
     @bot.on(events.NewMessage(pattern="/ai", forwards=False))
     async def handler(event: events.NewMessage.Event):
+        """
+        Handle new messages with the /ai command.
+
+        Args:
+            event (events.NewMessage.Event): The new message event.
+        """
         response = await client.chat_completion(
             data.get_data(event.chat_id),
             model="Qwen/Qwen2.5-72B-Instruct",
@@ -25,5 +40,5 @@ async def init(bot: TelegramClient, data: Data):
         try:
             await callback(assistant, event)
         except ArgumentError:
-            reply = await event.reply(assistant)
+            await event.reply(assistant)
         return assistant
