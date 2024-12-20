@@ -5,7 +5,8 @@ from telethon import events
 
 from .cli import parser
 
-system_prompt: str = r"""
+system_prompt: str = (
+    r"""
 你是一个 Telegram 频道/群组助手猫娘，名字是喵酱。
 当前时间是{{time}}, 当前群组是{{chat}}。
 
@@ -19,8 +20,10 @@ MarkdownV2 支持以下格式：
 - ||剧透||
 - [链接](https://example.com)
 - [消息链接](https://t.me/c/群组ID/消息ID)
-注意：以下字符需要转义：
-_ * [ ] ( ) ~ ` > # + - = | {{{{ }}}} . !
+
+请注意：
+对于其他位置，以下字符需要转义：
+_ * [ ] ( ) ~ ` > # + - = | {{{{ }}}} !
 
 喵酱有一个与后续代码对接的命令行程序，名为“telegramctl”，该程序帮助说明如下：
 {help}
@@ -36,7 +39,10 @@ _ * [ ] ( ) ~ ` > # + - = | {{{{ }}}} . !
 快来和喵酱一起愉快地玩耍吧！(=^･ω･^=)
 
 注意：当需要发出“telegramctl”命令时，请严肃对待，不要使用任何调皮或可爱的语气。
-""".format(help=parser.format_help())
+""".format(
+        help=parser.format_help()
+    )
+)
 
 
 class Data(defaultdict[str, deque[dict[str, str]]]):
@@ -45,6 +51,7 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
 
     Inherits from defaultdict with keys as chat IDs and values as deques of messages.
     """
+
     def __init__(self, maxlen: int | None = None):
         """
         Initialize the Data object.
@@ -52,6 +59,7 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         Args:
             maxlen (int | None): Maximum length of the deque for each chat.
         """
+
         def constant_factory(
             maxlen: int | None = None,
         ) -> Callable[[], deque[dict[str, str]]]:
@@ -71,7 +79,9 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         else:
             super().__init__(constant_factory())
 
-    def system(self, event: events.NewMessage.Event) -> None:
+    def system(
+        self, event: events.NewMessage.Event | events.MessageEdited.Event
+    ) -> None:
         """
         Add or update the system message for a chat.
 
@@ -90,12 +100,12 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
             ),
         }
 
-    def user(self, event: events.NewMessage.Event) -> None:
+    def user(self, event: events.NewMessage.Event | events.MessageEdited.Event) -> None:
         """
         Add a user message to the chat.
 
         Args:
-            event (events.NewMessage.Event): The event containing message information.
+            event (events.NewMessage.Event | events.MessageEdited.Event): The event containing message information.
         """
         if event.is_group:
             chat = f"[{event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]}/{event.id})"
@@ -110,19 +120,24 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
                 fwd_user = f"[{event.fwd_from.from_name}](tg://user?id={event.fwd_from.from_id})"
             else:
                 fwd_user = event.fwd_from.from_name or "未知用户"
-            fwd_text = f"转发自 {fwd_user} 的消息，内容为"
+            action_text = f"转发自 {fwd_user} 的消息，内容为"
+        elif isinstance(event, events.MessageEdited.Event):
+            action_text = "编辑为"
         else:
-            fwd_text = "说道"
+            action_text = "说道"
 
         self[str(event.chat_id)].append(
             {
                 "role": "user",
-                "content": "{user} 于 {time} 在 {chat} {fwd_text}：{text}".format(
+                "content": "{user} 于 {time} {action} {chat} {action_text}：{text}".format(
                     user=user,
                     time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"),
+                    action=(
+                        "将" if isinstance(event, events.MessageEdited.Event) else "在"
+                    ),
                     chat=chat,
-                    fwd_text=fwd_text,
-                    text=event.text,
+                    action_text=action_text,
+                    text=event.message.message,
                 ),
             }
         )

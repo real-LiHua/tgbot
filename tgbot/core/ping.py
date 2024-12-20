@@ -1,5 +1,6 @@
-import time
 import platform
+import time
+
 from telethon import TelegramClient, events
 
 
@@ -10,6 +11,7 @@ async def init(bot: TelegramClient):
     Args:
         bot (TelegramClient): The Telegram client instance.
     """
+
     @bot.on(events.NewMessage(pattern="/ping", forwards=False))
     async def handler(event: events.NewMessage.Event):
         """

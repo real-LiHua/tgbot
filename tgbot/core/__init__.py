@@ -3,6 +3,7 @@ from telethon import TelegramClient
 from . import ai, message_log, ping
 from .data import Data
 
+
 async def init(bot: TelegramClient, data: Data):
     """
     Initialize the bot with the provided modules.

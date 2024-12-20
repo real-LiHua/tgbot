@@ -23,6 +23,7 @@ async def init(bot: TelegramClient, data: Data):
         bot (TelegramClient): The Telegram client instance.
         data (Data): The data instance containing chat data.
     """
+
     @bot.on(events.NewMessage(pattern="/ai", forwards=False))
     async def handler(event: events.NewMessage.Event):
         """
