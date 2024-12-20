@@ -1,5 +1,5 @@
 import time
-
+import platform
 from telethon import TelegramClient, events
 
 
@@ -21,4 +21,5 @@ async def init(bot: TelegramClient):
         s = time.time()
         message = await event.reply("Pong!")
         d = time.time() - s
-        await message.edit(f"Pong! __(reply took {d:.2f}s)__")
+        os_info = platform.system()
+        await message.edit(f"Pong! __(reply took {d:.2f}s)__ on {os_info}")
