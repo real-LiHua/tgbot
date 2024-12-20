@@ -11,6 +11,7 @@ python-dotenv = "^1.0.1"
 huggingface-hub = "^0.26.5"
 aiohttp = "^3.11.10"
 telethon = "^1.38.1"
+portalocker = "^3.0.0"
 
 [tool.basedpyright]
 typeCheckingMode = "standard"

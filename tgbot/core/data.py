@@ -1,5 +1,9 @@
 from collections import defaultdict, deque
 from collections.abc import Callable
+from json import dump, load
+from pathlib import Path
+
+import portalocker
 
 from telethon import events
 
@@ -52,12 +56,13 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
     Inherits from defaultdict with keys as chat IDs and values as deques of messages.
     """
 
-    def __init__(self, maxlen: int | None = None):
+    def __init__(self, maxlen: int | None = None, storage_path: str = "data.json"):
         """
         Initialize the Data object.
 
         Args:
             maxlen (int | None): Maximum length of the deque for each chat.
+            storage_path (str): Path to the storage file.
         """
 
         def constant_factory(
@@ -78,6 +83,28 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
             super().__init__(constant_factory(maxlen + 1))
         else:
             super().__init__(constant_factory())
+        self.storage_path = Path(storage_path)
+        self._load_data()
+
+    def _load_data(self) -> None:
+        """
+        Load data from the storage file.
+        """
+        if self.storage_path.exists():
+            with self.storage_path.open("r") as f:
+                portalocker.lock(f, portalocker.LOCK_SH)
+                for chat_id, messages in load(f).items():
+                    self[chat_id] = deque(messages)
+                portalocker.unlock(f)
+
+    def _save_data(self) -> None:
+        """
+        Save data to the storage file.
+        """
+        with self.storage_path.open("w") as f:
+            portalocker.lock(f, portalocker.LOCK_EX)
+            dump({k: list(v) for k, v in self.items()}, f)
+            portalocker.unlock(f)
 
     def system(
         self, event: events.NewMessage.Event | events.MessageEdited.Event
@@ -99,6 +126,7 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
                 ),
             ),
         }
+        self._save_data()
 
     def user(self, event: events.NewMessage.Event | events.MessageEdited.Event) -> None:
         """
