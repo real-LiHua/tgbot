@@ -25,5 +25,5 @@ async def init(bot: TelegramClient, data: Data):
         try:
             await callback(assistant, event)
         except ArgumentError:
-            reply = await event.reply(response.choices[0].message.content)
-            print(reply)
+            reply = await event.reply(assistant)
+        return assistant

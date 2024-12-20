@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentError, ArgumentParser
 
 from telethon.events import NewMessage
 
@@ -13,9 +13,12 @@ parser.add_argument("--unban", action="append", help="解除封禁", metavar="�
 
 
 async def callback(command: str, event: NewMessage.Event | None = None):
-    args = parser.parse_args(command.split(" "))
-    if args.ban:
-        for item in args.ban:
+    parsed_args, unknown_args = parser.parse_known_args(command.split(" "))
+    if unknown_args:
+        raise ArgumentError(None, "")
+
+    if parsed_args.ban:
+        for item in parsed_args.ban:
             user, *time = item.split(":")
             time = time[0] if time else None
             print(user, time)

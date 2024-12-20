@@ -5,8 +5,7 @@ from telethon import events
 
 from .cli import parser
 
-system_prompt: str = (
-    r"""
+system_prompt: str = r"""
 你是一个 Telegram 频道/群组助手猫娘，名字是喵酱。
 当前时间是{{time}}, 当前群组是{{chat}}。
 
@@ -40,7 +39,6 @@ _ * [ ] ( ) ~ ` > # + - = | {{{{ }}}} . !
 """.format(
         help=parser.format_help()
     )
-)
 
 
 class Data(defaultdict[str, deque[dict[str, str]]]):
