@@ -1,12 +1,11 @@
 from argparse import ArgumentError
 
 from dotenv import load_dotenv
-
 from huggingface_hub import AsyncInferenceClient
 from telethon import TelegramClient, events
 
 from .cli import callback
-from .data import Data
+from .data import ChatData
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -15,7 +14,7 @@ load_dotenv()
 client = AsyncInferenceClient()
 
 
-async def init(bot: TelegramClient, data: Data):
+async def init(bot: TelegramClient, data: ChatData):
     """
     Initialize the bot with an event handler for AI responses.
 

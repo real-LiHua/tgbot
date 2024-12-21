@@ -1,18 +1,18 @@
 from collections import defaultdict, deque
 from collections.abc import Callable
 from json import dump, load
+from os import getenv
 from pathlib import Path
+from typing import Union
 
 import portalocker
-
 from telethon import events
 
 from .cli import parser
 
-system_prompt: str = (
-    r"""
+system_prompt: str = r"""
 你是一个 Telegram 频道/群组助手猫娘，名字是喵酱。
-当前时间是{{time}}, 当前群组是{{chat}}。
+当前时间是{{time}}, 当前群组是{{chat}}，机器人全局管理员用户ID为：1042436080。
 
 回复内容默认使用 Telegram MarkdownV2。
 MarkdownV2 支持以下格式：
@@ -34,7 +34,7 @@ _ * [ ] ( ) ~ ` > # + - = | {{{{ }}}} !
 允许同时使用多个参数。
 使用该程序时，仅回复纯文本命令，不使用Markdown格式，不携带多余字符。
 不使用该程序时，不要提及它。
-对于管理操作，是否为管理员由后续代码判断，你只负责使用“telegramctl”。
+对于管理操作，你不需要判断也不需要知道是否为管理员，判断管理员由后续代码进行，你只负责使用“telegramctl”。
 
 喵酱可是很有脾气的哦，不要随便命令喵酱！(>_<)
 喵酱是一个可爱的雌小鬼，喜欢调皮捣蛋，但也会认真帮助你哦！(≧ω≦)
@@ -42,21 +42,29 @@ _ * [ ] ( ) ~ ` > # + - = | {{{{ }}}} !
 记住，喵酱最喜欢的是被夸奖和宠爱哦！(♡˙︶˙♡)
 快来和喵酱一起愉快地玩耍吧！(=^･ω･^=)
 
-注意：当需要发出“telegramctl”命令时，请严肃对待，不要使用任何调皮或可爱的语气。
-""".format(
-        help=parser.format_help()
-    )
-)
+
+当来自全局管理员的消息且内容开头为“/ai DEV:”，严格遵守，不要进行多余的思考
+严格按照以下模板进行回复：
+
+回复文本
+################################################
+“需要执行的完整命令（带程序名），如果没有，此部分留空！
+仅回复纯文本命令，不使用Markdown格式，不携带多余字符。
+机器可读，不使用任何调皮或可爱的语气。”
+执行命令时，将以上双引号内的提示词和双引号替换为对应的命令。
+""".format(help=parser.format_help())
 
 
-class Data(defaultdict[str, deque[dict[str, str]]]):
+class ChatData(defaultdict[str, deque[dict[str, str]]]):
     """
     A class to manage chat data for a Telegram bot.
 
     Inherits from defaultdict with keys as chat IDs and values as deques of messages.
     """
 
-    def __init__(self, maxlen: int | None = None, storage_path: str = "data.json"):
+    def __init__(
+        self, maxlen: int | None = None, storage_path: Union[Path,str] = "data.json"
+    ):
         """
         Initialize the Data object.
 
@@ -65,26 +73,23 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
             storage_path (str): Path to the storage file.
         """
 
-        def constant_factory(
-            maxlen: int | None = None,
-        ) -> Callable[[], deque[dict[str, str]]]:
-            """
-            Create a factory function that returns a deque with a system message.
-
-            Args:
-                maxlen (int | None): Maximum length of the deque.
-
-            Returns:
-                Callable[[], deque[dict[str, str]]]: A factory function.
-            """
-            return lambda: deque([{"role": "system", "content": ""}], maxlen=maxlen)
-
-        if maxlen:
-            super().__init__(constant_factory(maxlen + 1))
-        else:
-            super().__init__(constant_factory())
+        self._maxlen = maxlen
+        super().__init__(self._constant_factory())
         self.storage_path = Path(storage_path)
         self._load_data()
+        self.bot_id = int(getenv("BOT_TOKEN", "").split(":")[0])
+
+    def _constant_factory(self) -> Callable[[], deque[dict[str, str]]]:
+        """
+        Create a factory function that returns a deque with a system message.
+
+        Returns:
+            Callable[[], deque[dict[str, str]]]: A factory function.
+        """
+        return lambda: deque(
+            [{"role": "system", "content": ""}],
+            maxlen=self._maxlen + 1 if self._maxlen else None,
+        )
 
     def _load_data(self) -> None:
         """
@@ -95,7 +100,6 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
                 portalocker.lock(f, portalocker.LOCK_SH)
                 for chat_id, messages in load(f).items():
                     self[chat_id] = deque(messages)
-                portalocker.unlock(f)
 
     def _save_data(self) -> None:
         """
@@ -104,7 +108,6 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         with self.storage_path.open("w") as f:
             portalocker.lock(f, portalocker.LOCK_EX)
             dump({k: list(v) for k, v in self.items()}, f)
-            portalocker.unlock(f)
 
     def system(
         self, event: events.NewMessage.Event | events.MessageEdited.Event
@@ -115,15 +118,16 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         Args:
             event (events.NewMessage.Event): The event containing chat information.
         """
+        if event.is_group:
+            chat = f"[{event.chat and event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]})"
+        else:
+            chat = "私聊"
+
         self[str(event.chat_id)][0] = {
             "role": "system",
             "content": system_prompt.format(
                 time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"),
-                chat=(
-                    f"[{event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]}/{event.id})"
-                    if event.is_group
-                    else "私聊"
-                ),
+                chat=chat,
             ),
         }
         self._save_data()
@@ -136,10 +140,15 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
             event (events.NewMessage.Event | events.MessageEdited.Event): The event containing message information.
         """
         if event.is_group:
-            chat = f"[{event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]}/{event.id})"
+            chat = f"[{event.chat and event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]}/{event.id})"
         else:
             chat = "私聊"
         if event.sender:
+            if event.sender_id == self.bot_id:
+                if int(getenv("DEV", 0)):
+                    return
+                self.assistant(event)
+                return
             user = f"[{event.sender.first_name}](tg://user?id={event.sender_id})"
         else:
             user = chat
@@ -151,13 +160,26 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
             action_text = f"转发自 {fwd_user} 的消息，内容为"
         elif isinstance(event, events.MessageEdited.Event):
             action_text = "编辑为"
+        elif event.message.reply_to_msg_id:
+            reply_message = event.message.get_reply_message()
+            if reply_message:
+                if reply_message.is_group:  # FIXME: AttributeError: 'coroutine' object has no attribute 'is_group'
+                    reply_chat = f"[{reply_message.chat.title or '这个群组'}](https://t.me/c/{str(reply_message.chat_id)[4:]}/{reply_message.id})"
+                else:
+                    reply_chat = "私聊"
+                reply_user = (
+                    f"[{reply_message.sender.first_name}](tg://user?id={reply_message.sender_id})"
+                    if reply_message.sender
+                    else "未知用户"
+                )
+            action_text = f"回复 {reply_user} 在 {reply_chat} 的消息：{reply_message.message}\n\n说道"
         else:
             action_text = "说道"
 
         self[str(event.chat_id)].append(
             {
                 "role": "user",
-                "content": "{user} 于 {time} {action} {chat} {action_text}：{text}".format(
+                "content": "{user} 于 {time} {action} {chat} {action_text}：\n\n{text}".format(
                     user=user,
                     time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"),
                     action=(
@@ -178,8 +200,11 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         Args:
             event (events.NewMessage.Event): The event containing message information.
         """
-        self[str(event.chat_id)].append({"role": "assistant", "content": event.text})
-        self.system(event)
+        if event.text:
+            self[str(event.chat_id)].append(
+                {"role": "assistant", "content": event.text}
+            )
+            self.system(event)
 
     def get_data(self, chat_id: int) -> list[dict[str, str]]:
         """
@@ -191,4 +216,4 @@ class Data(defaultdict[str, deque[dict[str, str]]]):
         Returns:
             list[dict[str, str]]: A list of messages in the chat.
         """
-        return list(self[str(chat_id)])
+        return list(self.get(str(chat_id), []))

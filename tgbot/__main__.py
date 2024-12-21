@@ -5,11 +5,10 @@ from os.path import join
 from pathlib import Path
 
 from dotenv import load_dotenv
-
 from telethon import TelegramClient
 
 from . import core, plugins
-from .core.data import Data
+from .core.data import ChatData
 
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger("asyncio").setLevel(logging.ERROR)
@@ -26,7 +25,7 @@ async def main():
     )
     await bot.start(bot_token=getenv("BOT_TOKEN", ""))
     try:
-        data = Data(2048, join("site", "data.json"))
+        data = ChatData(4096, join("site", "data.json"))
         await core.init(bot, data)
         await plugins.init(bot)
         await bot.run_until_disconnected()

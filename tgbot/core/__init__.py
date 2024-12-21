@@ -1,10 +1,10 @@
 from telethon import TelegramClient
 
 from . import ai, message_log, ping
-from .data import Data
+from .data import ChatData
 
 
-async def init(bot: TelegramClient, data: Data):
+async def init(bot: TelegramClient, data: ChatData):
     """
     Initialize the bot with the provided modules.
 
@@ -14,4 +14,4 @@ async def init(bot: TelegramClient, data: Data):
     """
     await message_log.init(bot, data)
     await ai.init(bot, data)
-    await ping.init(bot)
+    await ping.init(bot, data)

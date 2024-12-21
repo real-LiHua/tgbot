@@ -1,9 +1,9 @@
 from telethon import TelegramClient, events
 
-from .data import Data
+from .data import ChatData
 
 
-async def init(bot: TelegramClient, data: Data):
+async def init(bot: TelegramClient, data: ChatData):
     """
     Initialize the bot with a message logging event handler.
 

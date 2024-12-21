@@ -3,8 +3,10 @@ import time
 
 from telethon import TelegramClient, events
 
+from .data import ChatData
 
-async def init(bot: TelegramClient):
+
+async def init(bot: TelegramClient, data: ChatData):
     """
     Initialize the bot with a ping command handler.
 
@@ -24,4 +26,6 @@ async def init(bot: TelegramClient):
         message = await event.reply("Pong!")
         d = time.time() - s
         os_info = platform.system()
-        await message.edit(f"Pong! __(reply took {d:.2f}s)__ on {os_info}")
+        data.assistant(
+            await message.edit(f"Pong! __(reply took {d:.2f}s)__ on {os_info}")
+        )
