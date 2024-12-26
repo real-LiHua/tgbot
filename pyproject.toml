@@ -1,17 +1,17 @@
-[tool.poetry]
+[project]
 name = "tgbot"
 version = "0.1.0"
-description = ""
-authors = ["Li Hua <lihua@email.com>"]
+description = "Add your description here"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = ">=3.11"
-python-dotenv = "^1.0.1"
-huggingface-hub = "^0.26.5"
-aiohttp = "^3.11.10"
-telethon = "^1.38.1"
-portalocker = "^3.0.0"
+requires-python = ">=3.13"
+dependencies = [
+    "aiohttp>=3.11.11",
+    "huggingface-hub>=0.27.0",
+    "portalocker>=3.0.0",
+    "python-dotenv>=1.0.1",
+    "regex>=2024.11.6",
+    "telethon>=1.38.1",
+]
 
 [tool.basedpyright]
 typeCheckingMode = "standard"
@@ -21,7 +21,3 @@ target-version = "py312"
 
 [tool.ruff.lint]
 fixable = ["ALL"]
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
