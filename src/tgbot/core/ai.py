@@ -33,7 +33,7 @@ async def init(bot: TelegramClient, data: ChatData):
         """
         response = await client.chat_completion(
             data.get_data(event.chat_id),
-            model="Qwen/Qwen2.5-72B-Instruct",
+            model="deepseek-ai/DeepSeek-V3",
             max_tokens=1000,
         )
         assistant = response.choices[0].message.content or ""

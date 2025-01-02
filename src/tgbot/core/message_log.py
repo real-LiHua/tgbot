@@ -20,6 +20,7 @@ async def init(bot: TelegramClient, data: ChatData):
         Args:
             event (events.NewMessage.Event): The event object containing message details.
         """
+        print(event)
         data.user(event)
 
     @bot.on(events.MessageEdited())
