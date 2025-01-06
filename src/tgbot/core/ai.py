@@ -6,6 +6,7 @@ from telethon import TelegramClient, events
 
 from .cli import callback
 from .data import ChatData
+from .tools import tools
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -33,9 +34,12 @@ async def init(bot: TelegramClient, data: ChatData):
         """
         response = await client.chat_completion(
             data.get_data(event.chat_id),
-            model="deepseek-ai/DeepSeek-V3",
+            model="Qwen/Qwen2.5-72B-Instruct",
             max_tokens=1000,
+            tool_choice="auto",
+            tools=tools,
         )
+        print(response)
         assistant = response.choices[0].message.content or ""
         try:
             await callback(assistant, event)
