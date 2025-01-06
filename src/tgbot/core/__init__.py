@@ -1,10 +1,12 @@
+from ruamel.yaml import YAML
 from telethon import TelegramClient
 
-from . import ai, message_log, ping, inline
+from . import ai, inline, message_log, ping
 from .data import ChatData
-from ruamel.yaml import YAML
+
 with open("config.yaml") as file:
-    config=YAML().load(file)
+    config = YAML().load(file)
+
 
 async def init(bot: TelegramClient, data: ChatData):
     """
@@ -16,5 +18,5 @@ async def init(bot: TelegramClient, data: ChatData):
     """
     await message_log.init(bot, data)
     await ai.init(bot, data, config)
-    await inline.init(bot,data)
+    await inline.init(bot, data)
     await ping.init(bot, data)

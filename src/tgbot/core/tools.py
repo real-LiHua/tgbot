@@ -10,7 +10,12 @@ tools = [
                     "message": {
                         "type": "string",
                         "description": "The message to be sent, or another message object to resend.The maximum length for a message is 35,000 bytes or 4,096 characters. Longer messages will not be sliced automatically, and you should slice them manually if the text to send is longer than said length.",
-                    }}}}}]
+                    }
+                },
+            },
+        },
+    }
+]
 """
 ,
                     "reply_to": {

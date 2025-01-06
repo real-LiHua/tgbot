@@ -1,13 +1,10 @@
-from argparse import ArgumentError
-
 from dotenv import load_dotenv
-from huggingface_hub import AsyncInferenceClient
+from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDefinition
 from telethon import TelegramClient, events
 
-from .cli import callback
 from .data import ChatData
 from .tools import tools
-from aiohttp.client_exceptions import ClientResponseError
+
 # Load environment variables from a .env file
 load_dotenv()
 
@@ -19,6 +16,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
     Args:
         bot (TelegramClient): The Telegram client instance.
         data (Data): The data instance containing chat data.
+        config (dict[str, list[dict]]): The configuration dictionary containing model details.
     """
 
     @bot.on(events.NewMessage(pattern="/ai", forwards=False))
@@ -31,7 +29,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         """
         for llm in config["chat_completion"]:
             client = AsyncInferenceClient(
-                model=llm.get("model") if llm.get("base_url") else None,
+                model=llm.get("model") if not llm.get("base_url") else None,
                 base_url=llm.get("base_url"),
                 api_key=llm.get("api_key"),
             )
@@ -42,13 +40,11 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                     tool_choice="auto",
                     tools=tools,
                 )
-            except ClientResponseError:
-                pass
-            print(response)
+            except Exception as e:
+                print(e)
+                continue
             break
-        assistant = response.choices[0].message.content or ""
-        try:
-            await callback(assistant, event)
-        except ArgumentError:
-            await event.reply(assistant)
-        return assistant
+        func: ChatCompletionOutputFunctionDefinition = (
+            response.choices[0].message.tool_calls[0].function
+        )
+        getattr(bot, func.name)(chat_id=event.chat_id, **func.arguments)

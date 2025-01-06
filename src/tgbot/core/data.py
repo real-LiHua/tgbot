@@ -148,7 +148,9 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         elif event.message.reply_to_msg_id:
             reply_message = event.message.get_reply_message()
             if reply_message:
-                if reply_message.is_group:  # FIXME: AttributeError: 'coroutine' object has no attribute 'is_group'
+                if (
+                    reply_message.is_group
+                ):  # FIXME: AttributeError: 'coroutine' object has no attribute 'is_group'
                     reply_chat = f"[{reply_message.chat.title or '这个群组'}](https://t.me/c/{str(reply_message.chat_id)[4:]}/{reply_message.id})"
                 else:
                     reply_chat = "私聊"
