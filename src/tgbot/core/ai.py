@@ -28,6 +28,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             event (events.NewMessage.Event): The new message event.
         """
         used_functions = []
+        next = ""
         while "noop" != next != None:
             for llm in config["chat_completion"]:
                 client = AsyncInferenceClient(
@@ -56,7 +57,10 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             ].function
             used_functions.append(func)
             if func.arguments.get("next_function"):
+                next = func.arguments["next_function"]
                 del func.arguments["next_function"]
+            else:
+                next = None
             try:
                 callback = getattr(bot, func.name)
                 await callback(event.chat_id, **func.arguments)
