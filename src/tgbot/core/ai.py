@@ -38,7 +38,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                     data.get_data(event.chat_id),
                     max_tokens=1000,
                     tools=tools,
-                    tool_prompt="允许需要使用多个函数"
+                    tool_prompt="使用 SendReactionRequest"
                 )
             except Exception as e:
                 print(e)
@@ -50,9 +50,9 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             return
         print(message.tool_calls)
         func: ChatCompletionOutputFunctionDefinition = message.tool_calls[0].function
-        #next = func.arguments.get("next_function")
-        #del func.arguments["next_function"]
-        #print(next)
+        next = func.arguments.get("next_function")
+        del func.arguments["next_function"]
+        print(next)
         try:
             callback = getattr(bot, func.name)
             await callback(event.chat_id, **func.arguments)
