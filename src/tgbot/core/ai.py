@@ -27,8 +27,8 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         Args:
             event (events.NewMessage.Event): The new message event.
         """
-        next = "send_message"
-        while next and next != "noop":
+        next = ""
+        while "noop" != next != None:
             for llm in config["chat_completion"]:
                 client = AsyncInferenceClient(
                     model=llm.get("model") if not llm.get("base_url") else None,
@@ -40,7 +40,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         data.get_data(event.chat_id),
                         max_tokens=1000,
                         tools=tools,
-                        tool_prompt=f"使用 {next}" if next else None
+                        tool_prompt=f"只使用 {next} 函数" if next else None,
                     )
                 except Exception as e:
                     print(e)
@@ -51,7 +51,9 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 await event.reply(message)
                 return
             print(message.tool_calls)
-            func: ChatCompletionOutputFunctionDefinition = message.tool_calls[0].function
+            func: ChatCompletionOutputFunctionDefinition = message.tool_calls[
+                0
+            ].function
             next = func.arguments.get("next_function")
             del func.arguments["next_function"]
             print(next)
@@ -65,7 +67,11 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             event.chat_id,
                             func.arguments["msg_id"],
                             reaction=(
-                                [types.ReactionEmoji(emoticon=func.arguments["reaction"])]
+                                [
+                                    types.ReactionEmoji(
+                                        emoticon=func.arguments["reaction"]
+                                    )
+                                ]
                                 if func.arguments.get("reaction")
                                 else None
                             ),
