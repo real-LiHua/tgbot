@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDefinition
-from telethon import TelegramClient, events
-
+from telethon import TelegramClient, events, functions, types
 from .data import ChatData
 from .tools import tools
 
@@ -37,7 +36,6 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 response = await client.chat_completion(
                     data.get_data(event.chat_id),
                     max_tokens=1000,
-                    tool_choice="auto",
                     tools=tools,
                 )
             except Exception as e:
@@ -45,11 +43,24 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 continue
             break
         message = response.choices[0].message
-        if message.tool_calls:
-            func: ChatCompletionOutputFunctionDefinition = (
-                message.tool_calls[0].function
-            )
+        if not message.tool_calls:
+            await event.reply(message)
+            return
+        print(message.tool_calls)
+        func: ChatCompletionOutputFunctionDefinition = message.tool_calls[0].function
+        try:
             callback = getattr(bot, func.name)
             await callback(event.chat_id, **func.arguments)
-        else:
-            await event.reply(message)
+        except AttributeError:
+            if func.name == "SendReactionRequest":
+                await bot(
+                    functions.messages.SendReactionRequest(
+                        event.chat_id,
+                        func.arguments["msg_id"],
+                        reaction=[
+                            types.ReactionEmoji(emoticon=func.arguments["reaction"])
+                        ]
+                        if func.arguments.get("reaction")
+                        else None,
+                    )
+                )

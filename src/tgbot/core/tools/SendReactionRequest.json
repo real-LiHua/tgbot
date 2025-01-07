@@ -1,0 +1,22 @@
+{
+    "type": "function",
+    "function": {
+	"name": "SendReactionRequest",
+	"description": "",
+	"parameters": {
+	    "type": "object",
+	    "properties": {
+		"msg_id": {
+		    "type": "integer",
+		    "description": "消息ID，可从Telegram消息链接获取, 例如：https://t.me/{chat_id}/{message_id}"
+		},
+		"reaction": {
+		    "type": "string",
+		    "enum": ["👍", "👎", "❤", "🔥", "🥰", "👏", "😁", "🤔", "🤯", "😱", "🤬", "😢", "🎉", "🤩", "🤮", "💩", "🙏", "👌", "🕊", "🤡", "🥱", "🥴", "😍", "🐳", "❤‍🔥", "🌚", "🌭", "💯", "🤣", "⚡", "🍌", "🏆", "💔", "🤨", "😐", "🍓", "🍾", "💋", "🖕", "😈", "😴", "😭", "🤓", "👻", "👨‍💻", "👀", "🎃", "🙈", "😇", "😨", "🤝", "✍", "🤗", "🫡", "🎅", "🎄", "☃", "💅", "🤪", "🗿", "🆒", "💘", "🙉", "🦄", "😘", "💊", "🙊", "😎", "👾", "🤷‍♂", "🤷", "🤷‍♀", "😡"],
+		    "description": "A JSON-serialized list of reaction types to set on the message. A custom emoji reaction can be used if it is either already present on the message or explicitly allowed by chat administrators."
+		}
+	    },
+	    "required":["msg_id"]
+	}
+    }
+}
