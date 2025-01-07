@@ -27,7 +27,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         Args:
             event (events.NewMessage.Event): The new message event.
         """
-        next = ""
+        used_functions = []
         while "noop" != next != None:
             for llm in config["chat_completion"]:
                 client = AsyncInferenceClient(
@@ -40,7 +40,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         data.get_data(event.chat_id),
                         max_tokens=1000,
                         tools=tools,
-                        tool_prompt=f"只使用 {next} 函数" if next else None,
+                        tool_prompt=f"已使用过： {used_functions}" if used_functions else None,
                     )
                 except Exception as e:
                     print(e)
@@ -54,9 +54,8 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             func: ChatCompletionOutputFunctionDefinition = message.tool_calls[
                 0
             ].function
-            next = func.arguments.get("next_function")
+            used_functions.append(func)
             del func.arguments["next_function"]
-            print(next)
             try:
                 callback = getattr(bot, func.name)
                 await callback(event.chat_id, **func.arguments)
