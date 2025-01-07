@@ -1,0 +1,21 @@
+{
+    "type": "function",
+    "function": {
+	"name": "edit_admin",
+	"description": "",
+	"parameters": {
+	    "type": "object",
+	    "properties": {
+		"user": {
+		    "type": "integer",
+		    "description": "用户ID"
+		},
+		"change_info":{
+		    "type": "boolean",
+		    "description": "Whether the user will be able to change info."
+		}
+	    },
+	    "required":["user"]
+	}
+    }
+}
