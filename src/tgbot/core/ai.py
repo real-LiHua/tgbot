@@ -55,7 +55,8 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 0
             ].function
             used_functions.append(func)
-            del func.arguments["next_function"]
+            if func.arguments.get("next_function"):
+                del func.arguments["next_function"]
             try:
                 callback = getattr(bot, func.name)
                 await callback(event.chat_id, **func.arguments)
