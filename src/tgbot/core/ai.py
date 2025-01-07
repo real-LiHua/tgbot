@@ -44,9 +44,12 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 print(e)
                 continue
             break
-        func: ChatCompletionOutputFunctionDefinition = (
-            response.choices[0].message.tool_calls[0].function
-        )
-        print(func)
-        callback = getattr(bot, func.name)
-        await callback(event.chat_id, **func.arguments)
+        message = response.choices[0].message
+        if message.tool_calls:
+            func: ChatCompletionOutputFunctionDefinition = (
+                message.tool_calls[0].function
+            )
+            callback = getattr(bot, func.name)
+            await callback(event.chat_id, **func.arguments)
+        else:
+            await event.reply(message)

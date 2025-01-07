@@ -127,7 +127,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         if event.is_group:
             chat = f"[{event.chat and event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]}/{event.id})"
         else:
-            chat = "私聊"
+            chat = f"消息ID:{event.id}"
 
         if event.sender:
             if event.sender_id == self.bot_id:
