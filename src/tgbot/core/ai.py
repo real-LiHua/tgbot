@@ -28,8 +28,8 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             event (events.NewMessage.Event): The new message event.
         """
         used_functions = []
-        next = ""
-        while "noop" != next != None:
+        next = ...
+        while next and next != "noop":
             for llm in config["chat_completion"]:
                 client = AsyncInferenceClient(
                     model=llm.get("model") if not llm.get("base_url") else None,
@@ -56,7 +56,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 0
             ].function
             used_functions.append(func)
-            if func.arguments.get("next_function"):
+            if "next_function" in func.arguments:
                 next = func.arguments["next_function"]
                 del func.arguments["next_function"]
             else:
