@@ -27,45 +27,47 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         Args:
             event (events.NewMessage.Event): The new message event.
         """
-        for llm in config["chat_completion"]:
-            client = AsyncInferenceClient(
-                model=llm.get("model") if not llm.get("base_url") else None,
-                base_url=llm.get("base_url"),
-                api_key=llm.get("api_key"),
-            )
-            try:
-                response = await client.chat_completion(
-                    data.get_data(event.chat_id),
-                    max_tokens=1000,
-                    tools=tools,
-                    tool_prompt="使用 SendReactionRequest"
+        next = "send_message"
+        while next and next != "noop":
+            for llm in config["chat_completion"]:
+                client = AsyncInferenceClient(
+                    model=llm.get("model") if not llm.get("base_url") else None,
+                    base_url=llm.get("base_url"),
+                    api_key=llm.get("api_key"),
                 )
-            except Exception as e:
-                print(e)
-                continue
-            break
-        message = response.choices[0].message
-        if not message.tool_calls:
-            await event.reply(message)
-            return
-        print(message.tool_calls)
-        func: ChatCompletionOutputFunctionDefinition = message.tool_calls[0].function
-        next = func.arguments.get("next_function")
-        del func.arguments["next_function"]
-        print(next)
-        try:
-            callback = getattr(bot, func.name)
-            await callback(event.chat_id, **func.arguments)
-        except AttributeError:
-            if func.name == "SendReactionRequest":
-                await bot(
-                    functions.messages.SendReactionRequest(
-                        event.chat_id,
-                        func.arguments["msg_id"],
-                        reaction=(
-                            [types.ReactionEmoji(emoticon=func.arguments["reaction"])]
-                            if func.arguments.get("reaction")
-                            else None
-                        ),
+                try:
+                    response = await client.chat_completion(
+                        data.get_data(event.chat_id),
+                        max_tokens=1000,
+                        tools=tools,
+                        tool_prompt=f"使用 {next}" if next else None
                     )
-                )
+                except Exception as e:
+                    print(e)
+                    continue
+                break
+            message = response.choices[0].message
+            if not message.tool_calls:
+                await event.reply(message)
+                return
+            print(message.tool_calls)
+            func: ChatCompletionOutputFunctionDefinition = message.tool_calls[0].function
+            next = func.arguments.get("next_function")
+            del func.arguments["next_function"]
+            print(next)
+            try:
+                callback = getattr(bot, func.name)
+                await callback(event.chat_id, **func.arguments)
+            except AttributeError:
+                if func.name == "SendReactionRequest":
+                    await bot(
+                        functions.messages.SendReactionRequest(
+                            event.chat_id,
+                            func.arguments["msg_id"],
+                            reaction=(
+                                [types.ReactionEmoji(emoticon=func.arguments["reaction"])]
+                                if func.arguments.get("reaction")
+                                else None
+                            ),
+                        )
+                    )
