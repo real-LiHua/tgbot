@@ -13,6 +13,46 @@
 				"change_info": {
 					"type": "boolean",
 					"description": "Whether the user will be able to change info."
+				},
+				"post_messages": {
+					"type": "boolean",
+					"description": "Whether the user will be able to post in the channel. This will only work in broadcast channels."
+				},
+				"edit_messages": {
+					"type": "boolean",
+					"description": "Whether the user will be able to edit messages in the channel. This will only work in broadcast channels."
+				},
+				"delete_messages": {
+					"type": "boolean",
+					"description": "Whether the user will be able to delete messages."
+				},
+				"ban_users": {
+					"type": "boolean",
+					"description": "Whether the user will be able to ban users."
+				},
+				"invite_users": {
+					"type": "boolean",
+					"description": "Whether the user will be able to invite users. Needs some testing."
+				},
+				"pin_messages": {
+					"type": "boolean",
+					"description": "Whether the user will be able to pin messages."
+				},
+				"add_admins": {
+					"type": "boolean",
+					"description": "Whether the user will be able to add admins."
+				},
+				"anonymous": {
+					"type": "boolean",
+					"description": "Whether the user will remain anonymous when sending messages. The sender of the anonymous messages becomes the group itself. Note: Users may be able to identify the anonymous admin by its custom title, so additional care is needed when using both anonymous and custom titles. For example, if multiple anonymous admins share the same title, users won’t be able to distinguish them."
+				},
+				"is_admin": {
+					"type": "boolean",
+					"description": "Whether the user will be an admin in the chat. This will only work in small group chats. Essentially, only passing is_admin=True will grant all permissions, but you can still disable those you need."
+				},
+				"title": {
+					"type": "string",
+					"description": "The custom title (also known as “rank”) to show for this admin. This text will be shown instead of the “admin” badge. This will only work in channels and megagroups. When left unspecified or empty, the default localized “admin” badge will be shown."
 				}
 			},
 			"required": [
