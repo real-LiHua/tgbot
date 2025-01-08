@@ -21,7 +21,7 @@ async def init(bot: TelegramClient, data: ChatData):
 
     @bot.on(events.Raw)
     async def handler(update):
-        if event.__class__.__name__ in no_events:
+        if update.__class__.__name__ in no_events:
             return
         print(update)
         data.user(update)

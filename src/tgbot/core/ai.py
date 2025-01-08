@@ -3,7 +3,7 @@ from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDe
 from telethon import TelegramClient, events, functions, types
 
 from .data import ChatData
-from .tools import tools
+from .tools import tool_name, tools
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -27,9 +27,10 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         Args:
             event (events.NewMessage.Event): The new message event.
         """
+        print(data.get_data(event.chat_id))
         used_functions = []
-        next = ...
-        while next and next != "noop":
+        next = "send_message"
+        while next and next in tool_name:
             for lm in config["chat_completion"]:
                 client = AsyncInferenceClient(
                     model=lm.get("model") if not lm.get("base_url") else None,
