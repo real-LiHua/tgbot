@@ -13,4 +13,4 @@ for json_file in this.glob("tools/*.json"):
         }
         tools.append(temp)
 
-tool_name = {i["function"]["name"] for i in tools}
+tool_names = {i["function"]["name"] for i in tools}

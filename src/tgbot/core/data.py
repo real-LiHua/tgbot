@@ -136,7 +136,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         self[peer_id].append({"role": "user", "content": str(event)})
         self.system(event)
 
-    def assistant(self, event: events.NewMessage.Event) -> None:
+    def assistant(self, event) -> None:
         """
         Add an assistant message to the chat.
 
@@ -144,9 +144,8 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             event (events.NewMessage.Event): The event containing message information.
         """
         self[str(event.chat_id)].append(
-            {"role": "assistant", "content": str(event.original_update)}
+            {"role": "assistant", "content": str(event)}
         )
-        self.system(event)
 
     def get_data(self, chat_id: int) -> list[dict[str, str]]:
         """

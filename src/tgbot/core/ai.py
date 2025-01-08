@@ -3,7 +3,7 @@ from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDe
 from telethon import TelegramClient, events, functions, types
 
 from .data import ChatData
-from .tools import tool_name, tools
+from .tools import tool_names, tools
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -30,7 +30,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         print(data.get_data(event.chat_id))
         used_functions = []
         next = "send_message"
-        while next and next in tool_name:
+        while next and next in tool_names:
             for lm in config["chat_completion"]:
                 client = AsyncInferenceClient(
                     model=lm.get("model") if not lm.get("base_url") else None,
@@ -52,7 +52,8 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 break
             message = response.choices[0].message
             if not message.tool_calls:
-                await event.reply(message)
+                res = await event.reply(message)
+                data.assistant(res)
                 return
             print(message.tool_calls)
             func: ChatCompletionOutputFunctionDefinition = message.tool_calls[
@@ -66,7 +67,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 next = None
             match func.name:
                 case "SendReactionRequest":
-                    await bot(
+                    res = await bot(
                         functions.messages.SendReactionRequest(
                             event.chat_id,
                             func.arguments["msg_id"],
@@ -79,7 +80,8 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 case _:
                     try:
                         callback = getattr(bot, func.name)
-                        await callback(event.chat_id, **func.arguments)
+                        res = await callback(event.chat_id, **func.arguments)
+                        data.assistant(res)
                     except AttributeError:
                         for lm in config[func.name]:
                             client = AsyncInferenceClient(
@@ -91,9 +93,10 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             )
                             callback = getattr(client, func.name)
                             try:
-                                response = await callback(**func.arguments)
-                                if response:
-                                    print(response)
+                                res = await callback(**func.arguments)
+                                data.assistant(res)
+                                if res:
+                                    print(res)
                                     break
                             except Exception as e:
                                 print(e)
