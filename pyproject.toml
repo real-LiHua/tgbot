@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.11.11",
     "huggingface-hub>=0.27.0",
+    "pillow>=11.1.0",
     "portalocker>=3.0.0",
     "python-dotenv>=1.0.1",
     "regex>=2024.11.6",

@@ -30,11 +30,11 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         used_functions = []
         next = ...
         while next and next != "noop":
-            for llm in config["chat_completion"]:
+            for lm in config["chat_completion"]:
                 client = AsyncInferenceClient(
-                    model=llm.get("model") if not llm.get("base_url") else None,
-                    base_url=llm.get("base_url"),
-                    api_key=llm.get("api_key"),
+                    model=lm.get("model") if not lm.get("base_url") else None,
+                    base_url=lm.get("base_url"),
+                    api_key=lm.get("api_key"),
                 )
                 try:
                     response = await client.chat_completion(
@@ -81,15 +81,17 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 callback = getattr(bot, func.name)
                 await callback(event.chat_id, **func.arguments)
             except AttributeError:
-                for llm in config[func.name]:
+                for lm in config[func.name]:
                     client = AsyncInferenceClient(
-                        model=llm.get("model") if not llm.get("base_url") else None,
-                        base_url=llm.get("base_url"),
-                        api_key=llm.get("api_key"),
+                        model=lm.get("model") if not lm.get("base_url") else None,
+                        base_url=lm.get("base_url"),
+                        api_key=lm.get("api_key"),
                     )
                     callback = getattr(client, func.name)
-                    response = await callback(**func.arguments)
-                    if response:
-                        print(response)
-                        break
-
+                    try:
+                        response = await callback(**func.arguments)
+                        if response:
+                            print(response)
+                            break
+                    except Exception as e:
+                        print(e)
