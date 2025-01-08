@@ -61,23 +61,35 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 del func.arguments["next_function"]
             else:
                 next = None
+            if func.name == "SendReactionRequest":
+                await bot(
+                    functions.messages.SendReactionRequest(
+                        event.chat_id,
+                        func.arguments["msg_id"],
+                        reaction=(
+                            [
+                                types.ReactionEmoji(
+                                    emoticon=func.arguments["reaction"]
+                                )
+                            ]
+                            if func.arguments.get("reaction")
+                            else None
+                        ),
+                    )
+                )
             try:
                 callback = getattr(bot, func.name)
                 await callback(event.chat_id, **func.arguments)
             except AttributeError:
-                if func.name == "SendReactionRequest":
-                    await bot(
-                        functions.messages.SendReactionRequest(
-                            event.chat_id,
-                            func.arguments["msg_id"],
-                            reaction=(
-                                [
-                                    types.ReactionEmoji(
-                                        emoticon=func.arguments["reaction"]
-                                    )
-                                ]
-                                if func.arguments.get("reaction")
-                                else None
-                            ),
-                        )
+                for llm in config[func.name]:
+                    client = AsyncInferenceClient(
+                        model=llm.get("model") if not llm.get("base_url") else None,
+                        base_url=llm.get("base_url"),
+                        api_key=llm.get("api_key"),
                     )
+                    callback = getattr(client, func.name)
+                    response = await callback(**func.arguments)
+                    if response:
+                        print(response)
+                        break
+
