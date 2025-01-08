@@ -124,59 +124,8 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         Args:
             event (events.NewMessage.Event | events.MessageEdited.Event): The event containing message information.
         """
-        if event.is_group:
-            chat = f"[{event.chat and event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]}/{event.id})"
-        else:
-            chat = f"消息ID:{event.id}"
-
-        if event.sender:
-            if event.sender_id == self.bot_id:
-                self.assistant(event)
-                return
-            user = f"[{event.sender.first_name}](tg://user?id={event.sender_id})"
-        else:
-            user = chat
-
-        if event.fwd_from:
-            if event.fwd_from.from_id:
-                fwd_user = f"[{event.fwd_from.from_name}](tg://user?id={event.fwd_from.from_id})"
-            else:
-                fwd_user = event.fwd_from.from_name or "未知用户"
-            action_text = f"转发自 {fwd_user} 的消息，内容为"
-        elif isinstance(event, events.MessageEdited.Event):
-            action_text = "编辑为"
-        elif event.message.reply_to_msg_id:
-            reply_message = event.message.get_reply_message()
-            if reply_message:
-                if (
-                    reply_message.is_group
-                ):  # FIXME: AttributeError: 'coroutine' object has no attribute 'is_group'
-                    reply_chat = f"[{reply_message.chat.title or '这个群组'}](https://t.me/c/{str(reply_message.chat_id)[4:]}/{reply_message.id})"
-                else:
-                    reply_chat = "私聊"
-                reply_user = (
-                    f"[{reply_message.sender.first_name}](tg://user?id={reply_message.sender_id})"
-                    if reply_message.sender
-                    else "未知用户"
-                )
-            action_text = f"回复 {reply_user} 在 {reply_chat} 的消息：{reply_message.message}\n\n说道"
-        else:
-            action_text = "说道"
-
         self[str(event.chat_id)].append(
-            {
-                "role": "user",
-                "content": "{user} 于 {time} {action} {chat} {action_text}：\n\n{text}".format(
-                    user=user,
-                    time=event.date.strftime("%a %d %b %Y, %I:%M%p %Z"),
-                    action=(
-                        "将" if isinstance(event, events.MessageEdited.Event) else "在"
-                    ),
-                    chat=chat,
-                    action_text=action_text,
-                    text=event.message.message,
-                ),
-            }
+            {"role": "user", "content": str(event.original_update)}
         )
         self.system(event)
 
@@ -187,11 +136,10 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         Args:
             event (events.NewMessage.Event): The event containing message information.
         """
-        if event.text:
-            self[str(event.chat_id)].append(
-                {"role": "assistant", "content": event.text}
-            )
-            self.system(event)
+        self[str(event.chat_id)].append(
+            {"role": "assistant", "content": str(event.original_update)}
+        )
+        self.system(event)
 
     def get_data(self, chat_id: int) -> list[dict[str, str]]:
         """
@@ -204,3 +152,4 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             list[dict[str, str]]: A list of messages in the chat.
         """
         return list(self.get(str(chat_id), []))
+
