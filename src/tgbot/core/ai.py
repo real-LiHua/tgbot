@@ -41,7 +41,9 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         data.get_data(event.chat_id),
                         max_tokens=1000,
                         tools=tools,
-                        tool_prompt=f"已使用过： {used_functions}" if used_functions else None,
+                        tool_prompt=(
+                            f"已使用过： {used_functions}" if used_functions else None
+                        ),
                     )
                 except Exception as e:
                     print(e)
@@ -61,37 +63,36 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 del func.arguments["next_function"]
             else:
                 next = None
-            if func.name == "SendReactionRequest":
-                await bot(
-                    functions.messages.SendReactionRequest(
-                        event.chat_id,
-                        func.arguments["msg_id"],
-                        reaction=(
-                            [
-                                types.ReactionEmoji(
-                                    emoticon=func.arguments["reaction"]
-                                )
-                            ]
-                            if func.arguments.get("reaction")
-                            else None
+            match func.name:
+                case "SendReactionRequest":
+                    await bot(
+                        functions.messages.SendReactionRequest(
+                            event.chat_id,
+                            func.arguments["msg_id"],
+                            reaction=func.arguments.get("reaction")
+                            and [
+                                types.ReactionEmoji(emoticon=func.arguments["reaction"])
+                            ],
                         ),
                     )
-                )
-            try:
-                callback = getattr(bot, func.name)
-                await callback(event.chat_id, **func.arguments)
-            except AttributeError:
-                for lm in config[func.name]:
-                    client = AsyncInferenceClient(
-                        model=lm.get("model") if not lm.get("base_url") else None,
-                        base_url=lm.get("base_url"),
-                        api_key=lm.get("api_key"),
-                    )
-                    callback = getattr(client, func.name)
+                case _:
                     try:
-                        response = await callback(**func.arguments)
-                        if response:
-                            print(response)
-                            break
-                    except Exception as e:
-                        print(e)
+                        callback = getattr(bot, func.name)
+                        await callback(event.chat_id, **func.arguments)
+                    except AttributeError:
+                        for lm in config[func.name]:
+                            client = AsyncInferenceClient(
+                                model=(
+                                    lm.get("model") if not lm.get("base_url") else None
+                                ),
+                                base_url=lm.get("base_url"),
+                                api_key=lm.get("api_key"),
+                            )
+                            callback = getattr(client, func.name)
+                            try:
+                                response = await callback(**func.arguments)
+                                if response:
+                                    print(response)
+                                    break
+                            except Exception as e:
+                                print(e)

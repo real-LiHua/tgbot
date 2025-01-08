@@ -7,6 +7,7 @@ from typing import Union
 
 import portalocker
 from telethon import events
+from telethon.utils import get_peer_id
 
 system_prompt: str = r"""
 你是一个 Telegram 频道/群组助手猫娘，默认拥有全部权限，名字是喵酱。
@@ -98,7 +99,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             dump({k: list(v) for k, v in self.items()}, f)
 
     def system(
-        self, event: events.NewMessage.Event | events.MessageEdited.Event
+        self, event: events.NewMessage.Event | events.MessageEdited.Event | events.Raw
     ) -> None:
         """
         Add or update the system message for a chat.
@@ -106,27 +107,33 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         Args:
             event (events.NewMessage.Event): The event containing chat information.
         """
-        if event.is_group:
-            chat = f"[{event.chat and event.chat.title or '这个群组'}](https://t.me/c/{str(event.chat_id)[4:]})"
-        else:
-            chat = "私聊"
 
-        self[str(event.chat_id)][0] = {
+        try:
+            peer_id: str = str(get_peer_id(event.message.peer_id))
+        except AttributeError:
+            peer_id: str = f"-200{event.channel_id}"
+
+        self[peer_id][0] = {
             "role": "system",
-            "content": system_prompt.format(chat=chat),
+            "content": system_prompt.format(chat=peer_id),
         }
         self._save_data()
 
-    def user(self, event: events.NewMessage.Event | events.MessageEdited.Event) -> None:
+    def user(
+        self,
+        event,
+    ) -> None:
         """
         Add a user message to the chat.
 
         Args:
             event (events.NewMessage.Event | events.MessageEdited.Event): The event containing message information.
         """
-        self[str(event.chat_id)].append(
-            {"role": "user", "content": str(event.original_update)}
-        )
+        try:
+            peer_id: str = str(get_peer_id(event.message.peer_id))
+        except AttributeError:
+            peer_id: str = f"-200{event.channel_id}"
+        self[peer_id].append({"role": "user", "content": str(event)})
         self.system(event)
 
     def assistant(self, event: events.NewMessage.Event) -> None:
@@ -152,4 +159,3 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             list[dict[str, str]]: A list of messages in the chat.
         """
         return list(self.get(str(chat_id), []))
-
