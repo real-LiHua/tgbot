@@ -1,0 +1,19 @@
+{
+	"type": "function",
+	"function": {
+		"name": "delete_messages",
+		"description": "Deletes the given messages.",
+		"parameters": {
+			"type": "object",
+			"properties": {
+				"message_ids": {
+					"type": "array",
+					"description": "The IDs to be deleted."
+				}
+			},
+			"required": [
+				"message_ids"
+			]
+		}
+	}
+}
