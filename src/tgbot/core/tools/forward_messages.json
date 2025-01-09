@@ -6,13 +6,17 @@
 		"parameters": {
 			"type": "object",
 			"properties": {
+				"entity": {
+					"type": "integer",
+					"description": "To which entity the message(s) will be forwarded."
+				},
 				"messages": {
 					"type": "array",
 					"description": "The messages integer IDs."
 				},
 				"from_peer": {
 					"type": "integer",
-					"description": ""
+					"description": "If the given messages are integer IDs and not instances of the Message class, this must be specified in order for the forward to work. This parameter indicates the entity from which the messages should be forwarded."
 				},
 				"silent": {
 					"type": "boolean",
@@ -20,7 +24,7 @@
 				}
 			},
 			"required": [
-				"message"
+				"entity","messages","from_peer"
 			]
 		}
 	}

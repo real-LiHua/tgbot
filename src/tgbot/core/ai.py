@@ -80,7 +80,12 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 case _:
                     try:
                         callback = getattr(bot, func.name)
-                        res = await callback(event.chat_id, **func.arguments)
+                        entity = func.arguments.get('entity')
+                        if entity:
+                            del func.arguments["entity"]
+                        else:
+                            entity = event.chat_id
+                        res = await callback(entity, **func.arguments)
                         used_functions.append((func, res))
                         data.assistant(res)
                     except AttributeError:
