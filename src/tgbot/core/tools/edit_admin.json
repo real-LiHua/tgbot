@@ -2,7 +2,7 @@
 	"type": "function",
 	"function": {
 		"name": "edit_admin",
-		"description": "",
+		"description": "Edits admin permissions for someone in a chat.",
 		"parameters": {
 			"type": "object",
 			"properties": {
@@ -32,7 +32,7 @@
 				},
 				"invite_users": {
 					"type": "boolean",
-					"description": "Whether the user will be able to invite users. Needs some testing."
+					"description": "Whether the user will be able to invite users."
 				},
 				"pin_messages": {
 					"type": "boolean",

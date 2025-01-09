@@ -43,7 +43,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         max_tokens=1000,
                         tools=tools,
                         tool_prompt=(
-                            f"已使用过： {used_functions}" if used_functions else None
+                            f"已使用过的函数及结果为： {used_functions}" if used_functions else None
                         ),
                     )
                 except Exception as e:
@@ -59,7 +59,6 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             func: ChatCompletionOutputFunctionDefinition = message.tool_calls[
                 0
             ].function
-            used_functions.append(func)
             if "next_function" in func.arguments:
                 next = func.arguments["next_function"]
                 del func.arguments["next_function"]
@@ -77,10 +76,12 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             ],
                         ),
                     )
+                    used_functions.append((func, res))
                 case _:
                     try:
                         callback = getattr(bot, func.name)
                         res = await callback(event.chat_id, **func.arguments)
+                        used_functions.append((func, res))
                         data.assistant(res)
                     except AttributeError:
                         for lm in config[func.name]:
@@ -94,6 +95,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             callback = getattr(client, func.name)
                             try:
                                 res = await callback(**func.arguments)
+                                used_functions.append((func, res))
                                 data.assistant(res)
                                 if res:
                                     print(res)
