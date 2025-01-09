@@ -6,7 +6,7 @@
 		"parameters": {
 			"type": "object",
 			"properties": {
-				"message": {
+				"messages": {
 					"type": "array",
 					"description": "The messages integer IDs."
 				},
