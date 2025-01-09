@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDefinition
 from telethon import TelegramClient, events, functions, types
-
 from .data import ChatData
 from .tools import tool_names, tools
 
@@ -39,7 +38,8 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 )
                 try:
                     response = await client.chat_completion(
-                        data.get_data(event.chat_id)+[{"role":"user", "content":str(event.original_update)}],
+                        data.get_data(event.chat_id)
+                        + [{"role": "user", "content": str(event.original_update)}],
                         max_tokens=1000,
                         tools=tools,
                         tool_prompt=(
@@ -87,6 +87,10 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             del func.arguments["entity"]
                         else:
                             entity = event.chat_id
+                        if func.arguments.get("user"):
+                            func.arguments["user"] = await bot.get_input_entity(
+                                func.arguments["user"]
+                            )
                         res = await callback(entity, **func.arguments)
                         used_functions.append((func, res))
                         data.assistant(res)
