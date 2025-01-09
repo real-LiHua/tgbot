@@ -143,9 +143,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         Args:
             event (events.NewMessage.Event): The event containing message information.
         """
-        self[str(event.chat_id)].append(
-            {"role": "assistant", "content": str(event)}
-        )
+        self[str(event.chat_id)].append({"role": "assistant", "content": str(event)})
 
     def get_data(self, chat_id: int) -> list[dict[str, str]]:
         """

@@ -43,7 +43,9 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         max_tokens=1000,
                         tools=tools,
                         tool_prompt=(
-                            f"已使用过的函数及结果为： {used_functions}" if used_functions else None
+                            f"已使用过的函数及结果为： {used_functions}"
+                            if used_functions
+                            else None
                         ),
                     )
                 except Exception as e:
@@ -80,7 +82,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 case _:
                     try:
                         callback = getattr(bot, func.name)
-                        entity = func.arguments.get('entity')
+                        entity = func.arguments.get("entity")
                         if entity:
                             del func.arguments["entity"]
                         else:
