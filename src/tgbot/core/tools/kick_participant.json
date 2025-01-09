@@ -2,7 +2,7 @@
 	"type": "function",
 	"function": {
 		"name": "kick_participant",
-		"description": "Kicks a user from a chat. Kicking yourself ('me') will result in leaving the chat.",
+		"description": "Kicks a user from a chat. Kicking yourself (“me”) will result in leaving the chat.",
 		"parameters": {
 			"type": "object",
 			"properties": {

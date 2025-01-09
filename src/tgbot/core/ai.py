@@ -39,7 +39,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 )
                 try:
                     response = await client.chat_completion(
-                        data.get_data(event.chat_id),
+                        data.get_data(event.chat_id)+[{"role":"user", "content":str(event.original_update)}],
                         max_tokens=1000,
                         tools=tools,
                         tool_prompt=(
