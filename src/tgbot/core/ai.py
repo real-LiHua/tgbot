@@ -33,7 +33,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         used_functions = []
         next = "send_message"
         while next and next in tool_names:
-            for lm in config["chat_completion"]:
+            for lm in config.get("chat_completion",[]):
                 client = AsyncInferenceClient(
                     model=lm.get("model") if not lm.get("base_url") else None,
                     base_url=lm.get("base_url"),
@@ -117,9 +117,8 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             )
                         res = await callback(entity, **func.arguments)
                         used_functions.append((func, res))
-                        data.assistant(res)
                     except AttributeError:
-                        for lm in config[func.name]:
+                        for lm in config.get(func.name, []):
                             client = AsyncInferenceClient(
                                 model=(
                                     lm.get("model") if not lm.get("base_url") else None
