@@ -91,7 +91,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         if func.arguments.get("file"):
                             func.arguments["file"] = used_functions[
                                 func.arguments["file"]
-                            ][1].fp
+                            ][1]
                         if func.arguments.get("user"):
                             func.arguments["user"] = await bot.get_input_entity(
                                 func.arguments["user"]
@@ -111,7 +111,12 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             callback = getattr(client, func.name)
                             try:
                                 res = await callback(**func.arguments)
+                                try:
+                                    res = res.fp
+                                except AttributeError:
+                                    pass
                                 used_functions.append((func, res))
+                                print(used_functions)
                                 if res:
                                     break
                             except Exception as e:
