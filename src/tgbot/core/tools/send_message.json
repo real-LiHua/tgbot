@@ -20,7 +20,7 @@
 				},
 				"file": {
 					"type": "integer",
-					"description": "需要调用的结果列表下标，以0开始"
+					"description": "已使用函数的列表下标，用于从中获取文件对象"
 				},
 				"silent": {
 					"type": "boolean",
