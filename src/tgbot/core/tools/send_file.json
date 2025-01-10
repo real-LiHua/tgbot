@@ -1,0 +1,103 @@
+{
+	"type": "function",
+	"function": {
+		"name": "send_file",
+		"description": "Sends message with the given file to the specified entity.",
+		"parameters": {
+			"type": "object",
+			"properties": {
+				"file": {
+					"type": "integer",
+					"description": "已使用函数的列表下标，用于从中获取文件对象"
+				},
+				"caption": {
+					"type": "string",
+					"description": "Optional caption for the sent media message. When sending an album, the caption may be a list of strings, which will be assigned to the files pairwise."
+				},
+				"force_document": {
+					"type": "boolean",
+					"description": "If left to False and the file is a path that ends with the extension of an image file or a video file, it will be sent as such. Otherwise always as a document."
+				},
+				"file_size": {
+					"type": "integer",
+					"description": "The size of the file to be uploaded if it needs to be uploaded, which will be determined automatically if not specified. If the file size can’t be determined beforehand, the entire file will be read in-memory to find out how large it is."
+				},
+				"clear_draft": {
+					"type": "boolean",
+					"description": "Whether the existing draft should be cleared or not."
+				},
+				"progress_callback": {
+					"type": "string",
+					"description": "A callback function accepting two parameters: (sent bytes, total)."
+				},
+				"reply_to": {
+					"type": "integer",
+					"description": "Same as reply_to from send_message."
+				},
+				"attributes": {
+					"type": "array",
+					"description": "Optional attributes that override the inferred ones, like DocumentAttributeFilename and so on."
+				},
+				"thumb": {
+					"type": "string",
+					"description": "Optional JPEG thumbnail (for documents). Telegram will ignore this parameter unless you pass a .jpg file! The file must also be small in dimensions and in disk size. Successful thumbnails were files below 20kB and 320x320px. Width/height and dimensions/size ratios may be important. For Telegram to accept a thumbnail, you must provide the dimensions of the underlying media through attributes= with DocumentAttributesVideo or by installing the optional hachoir dependency."
+				},
+				"allow_cache": {
+					"type": "boolean",
+					"description": "This parameter currently does nothing, but is kept for backward-compatibility (and it may get its use back in the future)."
+				},
+				"parse_mode": {
+					"type": "string",
+					"description": "See the TelegramClient.parse_mode property for allowed values. Markdown parsing will be used by default."
+				},
+				"formatting_entities": {
+					"type": "array",
+					"description": "A list of message formatting entities. When provided, the parse_mode is ignored."
+				},
+				"voice_note": {
+					"type": "boolean",
+					"description": "If True the audio will be sent as a voice note."
+				},
+				"video_note": {
+					"type": "boolean",
+					"description": "If True the video will be sent as a video note, also known as a round video message."
+				},
+				"buttons": {
+					"type": "array",
+					"description": "The matrix (list of lists), row list or button to be shown after sending the message. This parameter will only work if you have signed in as a bot. You can also pass your own ReplyMarkup here."
+				},
+				"silent": {
+					"type": "boolean",
+					"description": "Whether the message should notify people with sound or not. Defaults to False (send with a notification sound unless the person has the chat muted). Set it to True to alter this behaviour."
+				},
+				"background": {
+					"type": "boolean",
+					"description": "Whether the message should be send in background."
+				},
+				"supports_streaming": {
+					"type": "boolean",
+					"description": "Whether the sent video supports streaming or not. Note that Telegram only recognizes as streamable some formats like MP4, and others like AVI or MKV will not work. You should convert these to MP4 before sending if you want them to be streamable. Unsupported formats will result in VideoContentTypeError."
+				},
+				"schedule": {
+					"type": "string",
+					"description": "If set, the file won’t send immediately, and instead it will be scheduled to be automatically sent at a later time."
+				},
+				"comment_to": {
+					"type": "integer",
+					"description": "Similar to reply_to, but replies in the linked group of a broadcast channel instead (effectively leaving a “comment to” the specified message). This parameter takes precedence over reply_to. If there is no linked chat, telethon.errors.sgIdInvalidError is raised."
+				},
+				"ttl": {
+					"type": "integer",
+					"description": "The Time-To-Live of the file (also known as “self-destruct timer” or “self-destructing media”). If set, files can only be viewed for a short period of time before they disappear from the message history automatically. The value must be at least 1 second, and at most 60 seconds, otherwise Telegram will ignore this parameter. Not all types of media can be used with this parameter, such as text documents, which will fail with TtlMediaInvalidError."
+				},
+				"nosound_video": {
+					"type": "boolean",
+					"description": "Only applicable when sending a video file without an audio track. If set to True, the video will be displayed in Telegram as a video. If set to False, Telegram will attempt to display the video as an animated gif. (It may still display as a video due to other factors.) The value is ignored if set on non-video files. This is set to True for albums, as gifs cannot be sent in albums."
+				}
+			},
+			"required": [
+				"file"
+			]
+		}
+	}
+}

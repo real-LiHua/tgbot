@@ -111,10 +111,6 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             callback = getattr(client, func.name)
                             try:
                                 res = await callback(**func.arguments)
-                                try:
-                                    res = res.fp
-                                except AttributeError:
-                                    pass
                                 used_functions.append((func, res))
                                 print(used_functions)
                                 if res:

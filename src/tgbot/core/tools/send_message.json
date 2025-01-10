@@ -2,7 +2,7 @@
 	"type": "function",
 	"function": {
 		"name": "send_message",
-		"description": "Sends a message. It can also be used to send multimedia files (pictures, videos, audio, etc.).",
+		"description": "Sends a message.",
 		"parameters": {
 			"type": "object",
 			"properties": {
@@ -17,10 +17,6 @@
 				"link_preview": {
 					"type": "boolean",
 					"description": "Should the link preview be shown?"
-				},
-				"file": {
-					"type": "integer",
-					"description": "已使用函数的列表下标，用于从中获取文件对象"
 				},
 				"silent": {
 					"type": "boolean",
