@@ -45,7 +45,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         max_tokens=1000,
                         tools=tools,
                         tool_prompt=(
-                            f"已使用过的函数及其结果的列表为(格式：[(函数,结果),...])： {used_functions}"
+                            f"选择需要调用的函数时仔细想想是否选择正确，已使用过的函数及其结果的列表为(格式：[(函数,结果),...])： {used_functions}"
                             if used_functions
                             else None
                         ),
