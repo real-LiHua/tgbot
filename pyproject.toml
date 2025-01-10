@@ -24,3 +24,10 @@ target-version = "py313"
 
 [tool.ruff.lint]
 fixable = ["ALL"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tgbot"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
