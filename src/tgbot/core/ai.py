@@ -1,3 +1,4 @@
+from tempfile import mkstemp
 from dotenv import load_dotenv
 from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDefinition
 from telethon import TelegramClient, events, functions, types
@@ -89,9 +90,12 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         else:
                             entity = event.chat_id
                         if isinstance(func.arguments.get("file"),int):
-                            func.arguments["file"] = used_functions[
-                                func.arguments["file"]
-                            ][1]
+                            _, name = mkstemp()
+                            file = used_functions[func.arguments["file"]][1]
+                            match file.__class__.__name__:
+                                case "JpegImageFile":
+                                    file.save(f'{name}.jpg')
+                                    func.arguments["file"] = f'{name}.jpg'
                         if func.arguments.get("user"):
                             func.arguments["user"] = await bot.get_input_entity(
                                 func.arguments["user"]
