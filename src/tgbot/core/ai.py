@@ -61,6 +61,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             func: ChatCompletionOutputFunctionDefinition = message.tool_calls[
                 0
             ].function
+            print(func)
             if "next_function" in func.arguments:
                 next = func.arguments["next_function"]
                 del func.arguments["next_function"]
@@ -87,6 +88,9 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             del func.arguments["entity"]
                         else:
                             entity = event.chat_id
+                        entity = func.arguments.get("entity")
+                        if func.arguments.get("file"):
+                            func.arguments["file"] = used_functions[func.arguments[file]][1].fp
                         if func.arguments.get("user"):
                             func.arguments["user"] = await bot.get_input_entity(
                                 func.arguments["user"]
