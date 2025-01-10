@@ -127,6 +127,8 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             event (events.NewMessage.Event | events.MessageEdited.Event): The event containing message information.
         """
         peer_id = await self._get_peer_id(event)
+        if not self[peer_id]:
+            self[peer_id].append({"role": "system", "content": ""})
         self[peer_id].append({"role": "user", "content": str(event)})
         await self.system(event)
 
