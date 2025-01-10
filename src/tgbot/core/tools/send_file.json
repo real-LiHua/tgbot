@@ -22,37 +22,9 @@
 					"type": "integer",
 					"description": "The size of the file to be uploaded if it needs to be uploaded, which will be determined automatically if not specified. If the file size can’t be determined beforehand, the entire file will be read in-memory to find out how large it is."
 				},
-				"clear_draft": {
-					"type": "boolean",
-					"description": "Whether the existing draft should be cleared or not."
-				},
-				"progress_callback": {
-					"type": "string",
-					"description": "A callback function accepting two parameters: (sent bytes, total)."
-				},
 				"reply_to": {
 					"type": "integer",
 					"description": "Same as reply_to from send_message."
-				},
-				"attributes": {
-					"type": "array",
-					"description": "Optional attributes that override the inferred ones, like DocumentAttributeFilename and so on."
-				},
-				"thumb": {
-					"type": "string",
-					"description": "Optional JPEG thumbnail (for documents). Telegram will ignore this parameter unless you pass a .jpg file! The file must also be small in dimensions and in disk size. Successful thumbnails were files below 20kB and 320x320px. Width/height and dimensions/size ratios may be important. For Telegram to accept a thumbnail, you must provide the dimensions of the underlying media through attributes= with DocumentAttributesVideo or by installing the optional hachoir dependency."
-				},
-				"allow_cache": {
-					"type": "boolean",
-					"description": "This parameter currently does nothing, but is kept for backward-compatibility (and it may get its use back in the future)."
-				},
-				"parse_mode": {
-					"type": "string",
-					"description": "See the TelegramClient.parse_mode property for allowed values. Markdown parsing will be used by default."
-				},
-				"formatting_entities": {
-					"type": "array",
-					"description": "A list of message formatting entities. When provided, the parse_mode is ignored."
 				},
 				"voice_note": {
 					"type": "boolean",
@@ -61,10 +33,6 @@
 				"video_note": {
 					"type": "boolean",
 					"description": "If True the video will be sent as a video note, also known as a round video message."
-				},
-				"buttons": {
-					"type": "array",
-					"description": "The matrix (list of lists), row list or button to be shown after sending the message. This parameter will only work if you have signed in as a bot. You can also pass your own ReplyMarkup here."
 				},
 				"silent": {
 					"type": "boolean",
@@ -78,17 +46,9 @@
 					"type": "boolean",
 					"description": "Whether the sent video supports streaming or not. Note that Telegram only recognizes as streamable some formats like MP4, and others like AVI or MKV will not work. You should convert these to MP4 before sending if you want them to be streamable. Unsupported formats will result in VideoContentTypeError."
 				},
-				"schedule": {
-					"type": "string",
-					"description": "If set, the file won’t send immediately, and instead it will be scheduled to be automatically sent at a later time."
-				},
 				"comment_to": {
 					"type": "integer",
 					"description": "Similar to reply_to, but replies in the linked group of a broadcast channel instead (effectively leaving a “comment to” the specified message). This parameter takes precedence over reply_to. If there is no linked chat, telethon.errors.sgIdInvalidError is raised."
-				},
-				"ttl": {
-					"type": "integer",
-					"description": "The Time-To-Live of the file (also known as “self-destruct timer” or “self-destructing media”). If set, files can only be viewed for a short period of time before they disappear from the message history automatically. The value must be at least 1 second, and at most 60 seconds, otherwise Telegram will ignore this parameter. Not all types of media can be used with this parameter, such as text documents, which will fail with TtlMediaInvalidError."
 				},
 				"nosound_video": {
 					"type": "boolean",
