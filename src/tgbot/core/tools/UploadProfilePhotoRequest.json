@@ -2,13 +2,13 @@
 	"type": "function",
 	"function": {
 		"name": "UploadProfilePhotoRequest",
-		"description": "设置机器人头像",
+ 		"description": "Change your profile photo (320x180, 640x360 or 960x540 pixels)",
 		"parameters": {
 			"type": "object",
 			"properties": {
 				"file": {
 					"type": "integer",
-                                        "description": "已使用函数的列表下标，用于从中获取文件对象"
+					"description": "已使用函数的列表下标，用于从中获取文件对象"
 				}
 			},
 			"required": [
