@@ -1,0 +1,19 @@
+{
+	"type": "function",
+	"function": {
+		"name": "UploadProfilePhotoRequest",
+		"description": "设置机器人头像",
+		"parameters": {
+			"type": "object",
+			"properties": {
+				"file": {
+					"type": "integer",
+                                        "description": "已使用函数的列表下标，用于从中获取文件对象"
+				}
+			},
+			"required": [
+				"file"
+			]
+		}
+	}
+}

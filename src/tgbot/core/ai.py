@@ -1,7 +1,9 @@
 from tempfile import mkstemp
+
 from dotenv import load_dotenv
 from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDefinition
 from telethon import TelegramClient, events, functions, types
+
 from .data import ChatData
 from .tools import tool_names, tools
 
@@ -81,6 +83,19 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         ),
                     )
                     used_functions.append((func, res))
+                case "UploadProfilePhotoRequest":
+                    if isinstance(func.arguments.get("file"), int):
+                        _, name = mkstemp()
+                        file = used_functions[func.arguments["file"]][1]
+                        match file.__class__.__name__:
+                            case "JpegImageFile":
+                                file.save(f"{name}.jpg")
+                                func.arguments["file"] = f"{name}.jpg"
+                    await bot(
+                        functions.photos.UploadProfilePhotoRequest(
+                            await bot.upload_file(**func.arguments)
+                        )
+                    )
                 case _:
                     try:
                         callback = getattr(bot, func.name)
@@ -89,13 +104,13 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             del func.arguments["entity"]
                         else:
                             entity = event.chat_id
-                        if isinstance(func.arguments.get("file"),int):
+                        if isinstance(func.arguments.get("file"), int):
                             _, name = mkstemp()
                             file = used_functions[func.arguments["file"]][1]
                             match file.__class__.__name__:
                                 case "JpegImageFile":
-                                    file.save(f'{name}.jpg')
-                                    func.arguments["file"] = f'{name}.jpg'
+                                    file.save(f"{name}.jpg")
+                                    func.arguments["file"] = f"{name}.jpg"
                         if func.arguments.get("user"):
                             func.arguments["user"] = await bot.get_input_entity(
                                 func.arguments["user"]
