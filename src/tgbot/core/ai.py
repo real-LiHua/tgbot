@@ -93,7 +93,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                                 func.arguments["file"] = f"{name}.jpg"
                     await bot(
                         functions.photos.UploadProfilePhotoRequest(
-                            await bot.upload_file(**func.arguments)
+                            file=await bot.upload_file(func.arguments["file"])
                         )
                     )
                 case _:
