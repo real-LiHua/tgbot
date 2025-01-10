@@ -82,7 +82,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
                 for chat_id, messages in load(f).items():
                     self[chat_id] = deque(messages)
 
-    def _save_data(self) -> None:
+    async def _save_data(self) -> None:
         """
         Save data to the storage file.
         """
@@ -90,7 +90,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             portalocker.lock(f, portalocker.LOCK_EX)
             dump({k: list(v) for k, v in self.items()}, f)
 
-    def _get_peer_id(self, event) -> str:
+    async def _get_peer_id(self, event) -> str:
         try:
             peer_id: str = str(get_peer_id(event.message.peer_id))
         except AttributeError:
@@ -100,7 +100,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
                 peer_id: str = f"-200{event.channel_id}"
         return peer_id
 
-    def system(
+    async def system(
         self, event: events.NewMessage.Event | events.MessageEdited.Event | events.Raw
     ) -> None:
         """
@@ -109,14 +109,14 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         Args:
             event (events.NewMessage.Event): The event containing chat information.
         """
-        peer_id = self._get_peer_id(event)
+        peer_id = await self._get_peer_id(event)
         self[peer_id][0] = {
             "role": "system",
             "content": system_prompt.format(chat=peer_id),
         }
-        self._save_data()
+        await self._save_data()
 
-    def user(
+    async def user(
         self,
         event,
     ) -> None:
@@ -126,22 +126,22 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         Args:
             event (events.NewMessage.Event | events.MessageEdited.Event): The event containing message information.
         """
-        peer_id = self._get_peer_id(event)
+        peer_id = await self._get_peer_id(event)
         self[peer_id].append({"role": "user", "content": str(event)})
-        self.system(event)
+        await self.system(event)
 
-    def assistant(self, event) -> None:
+    async def assistant(self, event) -> None:
         """
         Add an assistant message to the chat.
 
         Args:
             event (events.NewMessage.Event): The event containing message information.
         """
-        self[self._get_peer_id(event)].append(
+        self[await self._get_peer_id(event)].append(
             {"role": "assistant", "content": str(event)}
         )
 
-    def get_data(self, chat_id: int) -> list[dict[str, str]]:
+    async def get_data(self, chat_id: int) -> list[dict[str, str]]:
         """
         Get the data for a specific chat.
 

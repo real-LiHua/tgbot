@@ -29,11 +29,10 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
         Args:
             event (events.NewMessage.Event): The new message event.
         """
-        print(data.get_data(event.chat_id))
         used_functions = []
         next = "send_message"
         while next and next in tool_names:
-            for lm in config.get("chat_completion",[]):
+            for lm in config.get("chat_completion", []):
                 client = AsyncInferenceClient(
                     model=lm.get("model") if not lm.get("base_url") else None,
                     base_url=lm.get("base_url"),
@@ -41,7 +40,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 )
                 try:
                     response = await client.chat_completion(
-                        data.get_data(event.chat_id)
+                        (await data.get_data(event.chat_id))
                         + [{"role": "user", "content": str(event.original_update)}],
                         max_tokens=1000,
                         tools=tools,
@@ -58,7 +57,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             message = response.choices[0].message
             if not message.tool_calls:
                 res = await event.reply(message)
-                data.assistant(res)
+                await data.assistant(res)
                 return
             print(message.tool_calls)
             func: ChatCompletionOutputFunctionDefinition = message.tool_calls[

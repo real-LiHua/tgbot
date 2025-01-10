@@ -26,6 +26,6 @@ async def init(bot: TelegramClient, data: ChatData):
         message = await event.reply("Pong!")
         d = time.time() - s
         os_info = platform.system()
-        data.assistant(
+        await data.assistant(
             await message.edit(f"Pong! __(reply took {d:.2f}s)__ on {os_info}")
         )

@@ -24,4 +24,4 @@ async def init(bot: TelegramClient, data: ChatData):
         if update.__class__.__name__ in no_events:
             return
         print(update)
-        data.user(update)
+        await data.user(update)
