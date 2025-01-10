@@ -3,8 +3,9 @@ from telethon import TelegramClient, events
 from .data import ChatData
 
 no_events = (
-    "UpdateNewChannelMessage",
     "UpdateMessageID",
+    "UpdateNewChannelMessage",
+    "UpdateUser",
     "UpdateReadChannelInbox",
     "UpdateReadChannelOutbox",
 )
