@@ -2,7 +2,7 @@
 	"type": "function",
 	"function": {
 		"name": "text_to_image",
-		"description": "Generate an image based on a given text using a specified model.",
+		"description": "Generate an image based on a given text using a specified model. Generated images need to be sent unless otherwise stated.",
 		"parameters": {
 			"type": "object",
 			"properties": {

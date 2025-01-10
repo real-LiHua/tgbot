@@ -9,7 +9,7 @@ for json_file in this.glob("tools/*.json"):
         temp = load(f)
         temp["function"]["parameters"]["properties"]["next_function"] = {
             "type": "string",
-            "description": "下一个要调用的函数的函数名称",
+            "description": "下一个要调用的函数的函数名称，该名称必须正确且必须存在，要么就留空或保持默认",
         }
         tools.append(temp)
 
