@@ -88,7 +88,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             del func.arguments["entity"]
                         else:
                             entity = event.chat_id
-                        if func.arguments.get("file"):
+                        if isinstance(func.arguments.get("file"),int):
                             func.arguments["file"] = used_functions[
                                 func.arguments["file"]
                             ][1]

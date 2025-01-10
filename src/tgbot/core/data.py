@@ -124,7 +124,10 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         try:
             peer_id: str = str(get_peer_id(event.message.peer_id))
         except AttributeError:
-            peer_id: str = f"-200{event.channel_id}"
+            try:
+                peer_id: str = str(get_peer_id(event.peer))
+            except AttributeError:
+                peer_id: str = f"-200{event.channel_id}"
         self[peer_id].append({"role": "user", "content": str(event)})
         self.system(event)
 
