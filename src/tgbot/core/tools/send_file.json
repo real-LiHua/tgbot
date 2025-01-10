@@ -2,7 +2,7 @@
 	"type": "function",
 	"function": {
 		"name": "send_file",
-		"description": "Sends message with the given file to the specified entity.",
+		"description": "Sends message with the given file to the specified entity.If the hachoir3 package (hachoir module) is installed, it will be used to determine metadata from audio and video files. If the pillow package is installed and you are sending a photo, it will be resized to fit within the maximum dimensions allowed by Telegram to avoid errors.PhotoInvalidDimensionsError. This cannot be done if you are sending InputFile, however.",
 		"parameters": {
 			"type": "object",
 			"properties": {
