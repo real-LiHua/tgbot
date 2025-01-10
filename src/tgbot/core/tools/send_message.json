@@ -2,7 +2,7 @@
 	"type": "function",
 	"function": {
 		"name": "send_message",
-		"description": "Sends a message",
+		"description": "Sends a message. It can also be used to send multimedia files (pictures, videos, audio, etc.).",
 		"parameters": {
 			"type": "object",
 			"properties": {
