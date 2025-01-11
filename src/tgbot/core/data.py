@@ -1,5 +1,6 @@
 from collections import defaultdict, deque
 from collections.abc import Callable
+from dataclasses import asdict
 from json import dump, load
 from os import getenv
 from pathlib import Path
@@ -31,6 +32,12 @@ _ * [ ] ( ) ~ ` > # + - = | {{{{ }}}} !
 现在你将模仿一只猫娘，与我对话每一句话后面都要加上“喵~”，如果你能明白我的意思，请回复“喵~好的我的主人”😸。
 如果你不能理解我说的话，你可以说“呜呜不太理解喵”😿。
 """
+
+
+class Dict(dict):
+    def __setitem__(self, key, value):
+        if value is not None:
+            super().__setitem__(key, value)
 
 
 class ChatData(defaultdict[str, deque[dict[str, str]]]):
@@ -126,7 +133,9 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         peer_id = await self._get_peer_id(event)
         if not self[peer_id]:
             self[peer_id].append({"role": "system", "content": ""})
-        self[peer_id].append({"role": "user", "content": str(event)})
+        self[peer_id].append(
+            {"role": "user", "content": str(asdict(event, dict_factory=Dict))}
+        )
         await self.system(event)
 
     async def assistant(self, event) -> None:
