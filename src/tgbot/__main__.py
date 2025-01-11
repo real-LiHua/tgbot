@@ -12,7 +12,7 @@ from .core import message_log
 from .core.data import ChatData
 
 logging.basicConfig(
-    format="[%(levelname) %(asctime)s] %(name)s: %(message)s", level=logging.WARNING
+    level=logging.DEBUG
 )
 logging.getLogger("asyncio").setLevel(logging.ERROR)
 load_dotenv()
