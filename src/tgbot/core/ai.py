@@ -93,6 +93,10 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             file=await bot.upload_file(func.arguments["file"])
                         )
                     )
+                case "SetBotInfoRequest":
+                    await bot(functions.bots.SetBotInfoRequest(
+                        **func.arguments
+                    ))
                 case _:
                     try:
                         callback = getattr(bot, func.name)
