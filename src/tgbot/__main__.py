@@ -11,7 +11,9 @@ from . import core, plugins
 from .core import message_log
 from .core.data import ChatData
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG
+)
 logging.getLogger("asyncio").setLevel(logging.ERROR)
 load_dotenv()
 
