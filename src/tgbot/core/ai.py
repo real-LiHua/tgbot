@@ -45,7 +45,7 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                         max_tokens=1000,
                         tools=tools,
                         tool_prompt=(
-    f"请仔细考虑是否需要调用该函数，是否选择正确，是否多余？已使用的函数及其结果的列表为(格式：[(函数,结果),...])： {used_functions}"
+                            f"请仔细考虑是否需要调用该函数，是否选择正确，是否多余？已使用的函数及其结果的列表为(格式：[(函数,结果),...])： {used_functions}"
                             if used_functions
                             else None
                         ),
@@ -59,11 +59,9 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                 res = await event.reply(message)
                 await data.assistant(res)
                 return
-            print(message.tool_calls)
             func: ChatCompletionOutputFunctionDefinition = message.tool_calls[
                 0
             ].function
-            print(func)
             if "next_function" in func.arguments:
                 next = func.arguments["next_function"]
                 del func.arguments["next_function"]
@@ -129,7 +127,6 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                             try:
                                 res = await callback(**func.arguments)
                                 used_functions.append((func, res))
-                                print(used_functions)
                                 if res:
                                     break
                             except Exception as e:
