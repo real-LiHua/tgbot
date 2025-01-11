@@ -11,7 +11,8 @@ from . import core, plugins
 from .core import message_log
 from .core.data import ChatData
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(format='[%(levelname) %(asctime)s] %(name)s: %(message)s',
+                    level=logging.WARNING)
 logging.getLogger("asyncio").setLevel(logging.ERROR)
 load_dotenv()
 
@@ -22,7 +23,7 @@ async def main():
     """
     Path("site").mkdir(exist_ok=True)
     bot: TelegramClient = TelegramClient(
-        join("site", "bot"), 611335, "d524b414d21f4d37f08684c1df41ac9c"
+        join("site", "bot"), 611335, "d524b414d21f4d37f08684c1df41ac9c",catch_up=True
     )
     await bot.start(bot_token=getenv("BOT_TOKEN", ""))
     try:
