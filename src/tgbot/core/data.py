@@ -57,7 +57,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         self.storage_path = Path(storage_path)
         self._load_data()
         self.bot_id = int(getenv("BOT_TOKEN", "").split(":")[0])
-        self._secret = getenv("secret", "秘密")
+        self._secret = getenv("SECRET", "秘密")
 
     def _constant_factory(self) -> Callable[[], deque[dict[str, str]]]:
         """
