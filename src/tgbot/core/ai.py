@@ -33,6 +33,9 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             The response from the model.
         """
         for lm in config.get(name, []) + [dict()]:
+            if lm.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
+                # TODO: 白嫖 duckchat
+                pass
             client = AsyncInferenceClient(
                 model=(lm.get("model") if not lm.get("base_url") else None),
                 base_url=lm.get("base_url"),
@@ -67,6 +70,9 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
                     else None
                 ),
             )
+            if not response or not response.choices:
+                await event.reply("模型无响应")
+                return
             message = response.choices[0].message
             if not message.tool_calls:
                 res = await event.reply(message)
