@@ -8,6 +8,7 @@ dependencies = [
     "aiohttp>=3.11.11",
     "hachoir>=3.3.0",
     "huggingface-hub>=0.27.0",
+    "ollama>=0.4.7",
     "pillow>=11.1.0",
     "portalocker>=3.0.0",
     "python-dotenv>=1.0.1",
