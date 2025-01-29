@@ -2,6 +2,7 @@ from tempfile import mkstemp
 
 from dotenv import load_dotenv
 from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDefinition
+from ollama import AsyncClient
 from telethon import TelegramClient, events, functions, types
 
 from .data import ChatData
@@ -33,11 +34,15 @@ async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]
             The response from the model.
         """
         for lm in config.get(name, []) + [dict()]:
+            if lm.get("type") == "ollama":
+                return await AsyncClient(lm.get("host")).chat(
+                    lm.get("model", ""), **arguments
+                )
             if lm.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
                 # TODO: 白嫖 duckchat
                 pass
             client = AsyncInferenceClient(
-                model=(lm.get("model") if not lm.get("base_url") else None),
+                model=lm.get("model") if not lm.get("base_url") else None,
                 base_url=lm.get("base_url"),
                 api_key=lm.get("api_key"),
             )

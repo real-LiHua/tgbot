@@ -1,4 +1,5 @@
 import asyncio
+import gc
 import logging
 from os import getenv
 from os.path import join
@@ -10,6 +11,8 @@ from telethon import TelegramClient
 from . import core, plugins
 from .core import message_log
 from .core.data import ChatData
+
+gc.set_debug(gc.get_debug() | gc.DEBUG_UNCOLLECTABLE)
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("asyncio").setLevel(logging.ERROR)
