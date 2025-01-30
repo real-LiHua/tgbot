@@ -1,7 +1,7 @@
 from ruamel.yaml import YAML
 from telethon import TelegramClient
 
-from . import ai, ping, reset
+from . import ai, ping, reset,inline
 from .data import ChatData
 
 with open("config.yaml") as file:
@@ -16,6 +16,7 @@ async def init(bot: TelegramClient, data: ChatData):
         bot (TelegramClient): The Telegram client instance.
         data (Data): The data instance containing necessary information.
     """
+    await inline.init(bot, data, config)
     await ai.init(bot, data, config)
     await ping.init(bot, data)
     await reset.init(bot, data)

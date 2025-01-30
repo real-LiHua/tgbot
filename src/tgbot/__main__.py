@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from telethon import TelegramClient
 
 from . import core, plugins
-from .core import message_log
+from .core import history
 from .core.data import ChatData
 
 gc.set_debug(gc.get_debug() | gc.DEBUG_UNCOLLECTABLE)
@@ -30,7 +30,7 @@ async def main():
     await bot.start(bot_token=getenv("BOT_TOKEN", ""))
     try:
         data = ChatData(4096, join("site", "data.json"))
-        await message_log.init(bot, data)
+        await history.init(bot, data)
         await core.init(bot, data)
         await plugins.init(bot)
         await bot.run_until_disconnected()

@@ -4,7 +4,7 @@ from json import dump, load
 from os import getenv
 from pathlib import Path
 from typing import Union
-
+from shutil import unpack_archive
 import portalocker
 from telethon import events
 from telethon.utils import get_peer_id
@@ -156,3 +156,8 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             list[dict[str, str]]: A list of messages in the chat.
         """
         return list(self.get(str(chat_id), []))
+
+    async def import_from_archive(self, file):
+        #unpack_archive()
+        # TODO: 从客户端导出压缩包导入历史
+        pass
