@@ -1,0 +1,43 @@
+{
+	"type": "function",
+	"function": {
+		"name": "SearXNG",
+		"description": "SearXNG is a free internet metasearch engine which aggregates results from up to 215 search services. Users are neither tracked nor profiled.",
+		"parameters": {
+			"type": "object",
+			"properties": {
+				"q": {
+					"type": "string",
+					"description": "This string is passed to external search services. Thus, SearXNG supports syntax of each search service. For example, site:github.com SearXNG is a valid query for Google. However, if simply the query above is passed to any search engine which does not filter its results based on this syntax, you might not get the results you wanted."
+				},
+				"categories": {
+					"type": "array",
+					"description": "specifies the active search categories"
+				},
+				"engines": {
+					"type": "array",
+					"description": "specifies the active search engines"
+				},
+				"language": {
+					"type": "string",
+					"description": "Code of the language."
+				},
+				"pageno": {
+					"type": "integer",
+					"description": "Search page number."
+				},
+		"time_range":{
+		    "type":"string",
+		    "description":"[day,month,year]Time range of search for engines which support it. See if an engine supports time range search in the preferences page of an instance."
+		},
+		"safesearch":{
+"type":"integer",
+		    "description":"[ 0, 1, 2 ]Filter search results of engines which support safe search. See if an engine supports safe search in the preferences page of an instance."
+		}
+			},
+			"required": [
+				"q"
+			]
+		}
+	}
+}

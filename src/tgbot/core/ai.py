@@ -123,6 +123,8 @@ async def init(bot: TelegramClient, data: ChatData):
                     )
                 case "SetBotInfoRequest":
                     await bot(functions.bots.SetBotInfoRequest(**func.arguments))
+                case "SearXNG":
+                    pass
                 case _:
                     try:
                         callback = getattr(bot, func.name)
