@@ -3,6 +3,7 @@ from tempfile import mkstemp
 from dotenv import load_dotenv
 from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDefinition
 from ollama import AsyncClient
+from ruamel.yaml import YAML
 from telethon import TelegramClient, events, functions, types
 
 from .data import ChatData
@@ -11,46 +12,49 @@ from .tools import tool_names, tools
 # Load environment variables from a .env file
 load_dotenv()
 
+with open("config.yaml") as file:
+    config = YAML().load(file)
 
-async def init(bot: TelegramClient, data: ChatData, config: dict[str, list[dict]]):
+
+async def invoke_model(name: str, **arguments):
+    """
+    Invoke the specified model with the given arguments.
+
+    Args:
+        name (str): The name of the model to invoke.
+        **arguments (dict): The arguments to pass to the model.
+
+    Returns:
+        The response from the model.
+    """
+    for lm in config.get(name, []) + [dict()]:
+        if lm.get("type") == "ollama":
+            return await AsyncClient(lm.get("host")).chat(
+                lm.get("model", ""), **arguments
+            )
+        if lm.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
+            # TODO: 白嫖 duckchat
+            pass
+        client = AsyncInferenceClient(
+            model=lm.get("model") if not lm.get("base_url") else None,
+            base_url=lm.get("base_url"),
+            api_key=lm.get("api_key"),
+        )
+        callback = getattr(client, name)
+        try:
+            return await callback(**arguments)
+        except Exception as e:
+            print(e)
+
+
+async def init(bot: TelegramClient, data: ChatData):
     """
     Initialize the bot with an event handler for AI responses.
 
     Args:
         bot (TelegramClient): The Telegram client instance.
         data (Data): The data instance containing chat data.
-        config (dict[str, list[dict]]): The configuration dictionary containing model details.
     """
-
-    async def invoke_model(name: str, **arguments):
-        """
-        Invoke the specified model with the given arguments.
-
-        Args:
-            name (str): The name of the model to invoke.
-            **arguments (dict): The arguments to pass to the model.
-
-        Returns:
-            The response from the model.
-        """
-        for lm in config.get(name, []) + [dict()]:
-            if lm.get("type") == "ollama":
-                return await AsyncClient(lm.get("host")).chat(
-                    lm.get("model", ""), **arguments
-                )
-            if lm.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
-                # TODO: 白嫖 duckchat
-                pass
-            client = AsyncInferenceClient(
-                model=lm.get("model") if not lm.get("base_url") else None,
-                base_url=lm.get("base_url"),
-                api_key=lm.get("api_key"),
-            )
-            callback = getattr(client, name)
-            try:
-                return await callback(**arguments)
-            except Exception as e:
-                print(e)
 
     @bot.on(events.NewMessage(pattern="/ai", forwards=False))
     async def handler(event: events.NewMessage.Event):

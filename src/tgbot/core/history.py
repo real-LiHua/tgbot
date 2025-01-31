@@ -1,6 +1,8 @@
-from telethon import TelegramClient, events
-from tempfile import TemporaryFile
 from shutil import unpack_archive
+from tempfile import TemporaryFile
+
+from telethon import TelegramClient, events
+
 from .data import ChatData
 
 no_events = (
