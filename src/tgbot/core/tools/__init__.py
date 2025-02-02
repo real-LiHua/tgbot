@@ -1,3 +1,5 @@
+from openai import pydantic_function_tool
+
 from . import (
     SearXNG,
     SendReactionRequest,
@@ -15,19 +17,19 @@ from . import (
     unpin_message,
 )
 
-__all__ = [
-    "SearXNG",
-    "SetBotInfoRequest",
-    "delete_messages",
-    "edit_message",
-    "kick_participant",
-    "send_file",
-    "text_to_image",
-    "SendReactionRequest",
-    "UploadProfilePhotoRequest",
-    "edit_admin",
-    "forward_messages",
-    "pin_message",
-    "send_message",
-    "unpin_message",
+tools = [
+    pydantic_function_tool(SearXNG.SearXNG),
+    pydantic_function_tool(SetBotInfoRequest.SetBotInfoRequest),
+    pydantic_function_tool(delete_messages.DeleteMessages),
+    pydantic_function_tool(edit_message.EditMessage),
+    pydantic_function_tool(kick_participant.KickParticipant),
+    pydantic_function_tool(send_file.SendFile),
+    pydantic_function_tool(text_to_image.images),
+    pydantic_function_tool(SendReactionRequest.SendReactionRequest),
+    pydantic_function_tool(UploadProfilePhotoRequest.UploadProfilePhotoRequest),
+    pydantic_function_tool(edit_admin.EditAdmin),
+    pydantic_function_tool(forward_messages.ForwardMessages),
+    pydantic_function_tool(pin_message.PinMessage),
+    pydantic_function_tool(send_message.SendMessage),
+    pydantic_function_tool(unpin_message.UnpinMessage),
 ]

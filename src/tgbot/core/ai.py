@@ -7,7 +7,7 @@ from ruamel.yaml import YAML
 from telethon import TelegramClient, events, functions, types
 
 from .data import ChatData
-from .tools import tool_names, tools
+from .tools import tools
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -27,7 +27,8 @@ async def invoke_model(name: str, **arguments):
     Returns:
         The response from the model.
     """
-    for lm in config.get(name, []) + [dict()]:
+    for lm in config.get(name, []):
+        print(lm)
         if lm.get("type") == "ollama":
             return await AsyncClient(lm.get("host")).chat(
                 lm.get("model", ""), **arguments
@@ -39,10 +40,14 @@ async def invoke_model(name: str, **arguments):
             base_url=lm.get("base_url"),
             api_key=lm.get("api_key"),
         )
-        callback = getattr(client, name)
+        match name:
+            case "completions":
+                callback = client.chat.completions
+            case _:
+                callback = getattr(client, name)
         try:
             arguments["model"] = lm.get("model")
-            return await callback(**arguments)
+            return await callback.create(**arguments)
         except Exception as e:
             print(e)
 
@@ -66,25 +71,20 @@ async def init(bot: TelegramClient, data: ChatData):
         """
         used_functions = []
         next = "send_message"
-        while next and next in tool_names:
+        while next:
             response = await invoke_model(
-                "chat_completion",
+                "completions",
                 messages=(await data.get_data(event.chat_id))
                 + [{"role": "user", "content": str(event.original_update)}],
                 max_tokens=1000,
                 tools=tools,
-                tool_prompt=(
-                    f"请仔细考虑是否需要调用该函数，是否选择正确，是否多余？已使用的函数及其结果的列表为(格式：[(函数,结果),...])： {used_functions}"
-                    if used_functions
-                    else None
-                ),
             )
             if not response or not response.choices:
                 await event.reply("模型无响应")
                 return
             message = response.choices[0].message
             if not message.tool_calls:
-                res = await event.reply(message)
+                res = await event.reply(message.content)
                 await data.assistant(res)
                 return
             func = message.tool_calls[0].function
