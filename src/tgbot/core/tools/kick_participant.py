@@ -6,6 +6,9 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from . import Tool
 
+
+@Tool
 class KickParticipant(BaseModel):
     user: int = Field(..., description="The user to kick.")

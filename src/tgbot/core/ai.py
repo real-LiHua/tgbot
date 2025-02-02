@@ -79,6 +79,7 @@ async def init(bot: TelegramClient, data: ChatData):
                 max_tokens=1000,
                 tools=tools,
             )
+            print(response)
             if not response or not response.choices:
                 await event.reply("模型无响应")
                 return

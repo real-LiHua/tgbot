@@ -1,4 +1,21 @@
+from typing import Type
+
 from openai import pydantic_function_tool
+from pydantic import BaseModel
+
+
+class Tool(list):
+    __obj = None
+
+    def __new__(cls, flag=None):
+        if not cls.__obj:
+            cls.__obj = super().__new__(cls)
+        return cls.__obj
+
+    def __init__(self, c: Type[BaseModel] = None):
+        if c:
+            self.append(pydantic_function_tool(c))
+
 
 from . import (
     SearXNG,
@@ -17,19 +34,4 @@ from . import (
     unpin_message,
 )
 
-tools = [
-    pydantic_function_tool(SearXNG.SearXNG),
-    pydantic_function_tool(SetBotInfoRequest.SetBotInfoRequest),
-    pydantic_function_tool(delete_messages.DeleteMessages),
-    pydantic_function_tool(edit_message.EditMessage),
-    pydantic_function_tool(kick_participant.KickParticipant),
-    pydantic_function_tool(send_file.SendFile),
-    pydantic_function_tool(text_to_image.images),
-    pydantic_function_tool(SendReactionRequest.SendReactionRequest),
-    pydantic_function_tool(UploadProfilePhotoRequest.UploadProfilePhotoRequest),
-    pydantic_function_tool(edit_admin.EditAdmin),
-    pydantic_function_tool(forward_messages.ForwardMessages),
-    pydantic_function_tool(pin_message.PinMessage),
-    pydantic_function_tool(send_message.SendMessage),
-    pydantic_function_tool(unpin_message.UnpinMessage),
-]
+tools = Tool()

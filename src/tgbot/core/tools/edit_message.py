@@ -8,7 +8,10 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from . import Tool
 
+
+@Tool
 class EditMessage(BaseModel):
     message: int = Field(
         ...,

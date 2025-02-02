@@ -8,7 +8,10 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from . import Tool
 
+
+@Tool
 class EditAdmin(BaseModel):
     user: int = Field(..., description="用户ID")
     change_info: Optional[bool] = Field(

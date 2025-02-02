@@ -8,7 +8,10 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from . import Tool
 
+
+@Tool
 class images(BaseModel):
     prompt: str = Field(..., description="A text description of the desired image(s)")
     size: Optional[str] = Field(

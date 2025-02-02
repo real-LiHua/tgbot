@@ -86,6 +86,10 @@ class Reaction(Enum):
     field__68 = "😡"
 
 
+from . import Tool
+
+
+@Tool
 class SendReactionRequest(BaseModel):
     msg_id: int = Field(
         ...,

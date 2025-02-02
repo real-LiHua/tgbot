@@ -8,6 +8,9 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
+from . import Tool
 
+
+@Tool
 class DeleteMessages(BaseModel):
     message_ids: List = Field(..., description="The IDs to be deleted.")

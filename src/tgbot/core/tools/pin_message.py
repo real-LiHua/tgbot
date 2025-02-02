@@ -8,7 +8,10 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from . import Tool
 
+
+@Tool
 class PinMessage(BaseModel):
     message: int = Field(..., description="消息ID，可从Telegram消息链接获取")
     notify: Optional[bool] = Field(

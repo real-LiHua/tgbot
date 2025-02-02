@@ -8,7 +8,10 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from . import Tool
 
+
+@Tool
 class ForwardMessages(BaseModel):
     entity: int = Field(
         ..., description="To which entity the message(s) will be forwarded."

@@ -6,7 +6,10 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from . import Tool
 
+
+@Tool
 class UnpinMessage(BaseModel):
     message: int = Field(
         ...,
