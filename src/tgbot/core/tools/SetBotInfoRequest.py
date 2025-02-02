@@ -10,16 +10,16 @@ from pydantic import BaseModel, Field
 
 
 class SetBotInfoRequest(BaseModel):
-    lang_code: str = Field(..., description='lang code')
+    lang_code: str = Field(..., description="lang code")
     name: Optional[str] = Field(
         None,
-        description='Your name. This argument defaults to `None` and can be omitted.',
+        description="Your name. This argument defaults to `None` and can be omitted.",
     )
     about: Optional[str] = Field(
         None,
-        description='Information about you. This argument defaults to `None` and can be omitted.',
+        description="Information about you. This argument defaults to `None` and can be omitted.",
     )
     description: Optional[str] = Field(
         None,
-        description='A description of you. This argument defaults to `None` and can be omitted.',
+        description="A description of you. This argument defaults to `None` and can be omitted.",
     )

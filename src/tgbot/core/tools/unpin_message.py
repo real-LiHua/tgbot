@@ -10,5 +10,5 @@ from pydantic import BaseModel, Field
 class UnpinMessage(BaseModel):
     message: int = Field(
         ...,
-        description='消息ID，可从Telegram消息链接获取, 例如：https://t.me/{chat_id}/{message_id}',
+        description="消息ID，可从Telegram消息链接获取, 例如：https://t.me/{chat_id}/{message_id}",
     )

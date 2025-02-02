@@ -10,25 +10,25 @@ from pydantic import BaseModel, Field
 
 
 class TextToImage(BaseModel):
-    prompt: str = Field(..., description='The prompt to generate an image from.')
+    prompt: str = Field(..., description="The prompt to generate an image from.")
     negative_prompt: Optional[List] = Field(
         None,
-        description='One or several prompt to guide what NOT to include in image generation.',
+        description="One or several prompt to guide what NOT to include in image generation.",
     )
     height: Optional[float] = Field(
-        None, description='The height in pixels of the image to generate.'
+        None, description="The height in pixels of the image to generate."
     )
     width: Optional[float] = Field(
-        None, description='The width in pixels of the image to generate.'
+        None, description="The width in pixels of the image to generate."
     )
     num_inference_steps: Optional[int] = Field(
         None,
-        description='The number of denoising steps. More denoising steps usually lead to a higher quality image at the expense of slower inference.',
+        description="The number of denoising steps. More denoising steps usually lead to a higher quality image at the expense of slower inference.",
     )
     guidance_scale: Optional[float] = Field(
         None,
-        description='A higher guidance scale value encourages the model to generate images closely linked to the text prompt, but values too high may cause saturation and other artifacts.',
+        description="A higher guidance scale value encourages the model to generate images closely linked to the text prompt, but values too high may cause saturation and other artifacts.",
     )
     seed: Optional[int] = Field(
-        None, description='Seed for the random number generator.'
+        None, description="Seed for the random number generator."
     )

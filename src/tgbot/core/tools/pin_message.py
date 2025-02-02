@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 
 class PinMessage(BaseModel):
-    message: int = Field(..., description='消息ID，可从Telegram消息链接获取')
+    message: int = Field(..., description="消息ID，可从Telegram消息链接获取")
     notify: Optional[bool] = Field(
-        None, description='Whether the pin should notify people or not.'
+        None, description="Whether the pin should notify people or not."
     )

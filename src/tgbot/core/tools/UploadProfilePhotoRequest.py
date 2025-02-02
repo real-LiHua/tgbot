@@ -8,4 +8,4 @@ from pydantic import BaseModel, Field
 
 
 class UploadProfilePhotoRequest(BaseModel):
-    file: int = Field(..., description='已使用函数的列表下标，用于从中获取文件对象')
+    file: int = Field(..., description="已使用函数的列表下标，用于从中获取文件对象")

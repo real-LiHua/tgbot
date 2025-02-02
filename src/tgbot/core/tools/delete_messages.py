@@ -10,4 +10,4 @@ from pydantic import BaseModel, Field
 
 
 class DeleteMessages(BaseModel):
-    message_ids: List = Field(..., description='The IDs to be deleted.')
+    message_ids: List = Field(..., description="The IDs to be deleted.")

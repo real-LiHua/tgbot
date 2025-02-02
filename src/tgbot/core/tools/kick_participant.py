@@ -8,4 +8,4 @@ from pydantic import BaseModel, Field
 
 
 class KickParticipant(BaseModel):
-    user: int = Field(..., description='The user to kick.')
+    user: int = Field(..., description="The user to kick.")

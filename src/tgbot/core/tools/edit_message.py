@@ -12,9 +12,9 @@ from pydantic import BaseModel, Field
 class EditMessage(BaseModel):
     message: int = Field(
         ...,
-        description='消息ID，可从Telegram消息链接获取, 例如：https://t.me/{chat_id}/{message_id}',
+        description="消息ID，可从Telegram消息链接获取, 例如：https://t.me/{chat_id}/{message_id}",
     )
-    text: Optional[str] = Field(None, description='The new text of the message.')
+    text: Optional[str] = Field(None, description="The new text of the message.")
     link_preview: Optional[bool] = Field(
-        None, description='Should the link preview be shown?'
+        None, description="Should the link preview be shown?"
     )
