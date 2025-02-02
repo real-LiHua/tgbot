@@ -1,8 +1,8 @@
 from tempfile import mkstemp
 
 from dotenv import load_dotenv
-from huggingface_hub import AsyncInferenceClient, ChatCompletionOutputFunctionDefinition
 from ollama import AsyncClient
+from openai import AsyncOpenAI
 from ruamel.yaml import YAML
 from telethon import TelegramClient, events, functions, types
 
@@ -35,13 +35,13 @@ async def invoke_model(name: str, **arguments):
         if lm.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
             # TODO: 白嫖 duckchat
             pass
-        client = AsyncInferenceClient(
-            model=lm.get("model") if not lm.get("base_url") else None,
+        client: AsyncOpenAI = AsyncOpenAI(
             base_url=lm.get("base_url"),
             api_key=lm.get("api_key"),
         )
         callback = getattr(client, name)
         try:
+            arguments["model"] = lm.get("model")
             return await callback(**arguments)
         except Exception as e:
             print(e)
@@ -87,9 +87,7 @@ async def init(bot: TelegramClient, data: ChatData):
                 res = await event.reply(message)
                 await data.assistant(res)
                 return
-            func: ChatCompletionOutputFunctionDefinition = message.tool_calls[
-                0
-            ].function
+            func = message.tool_calls[0].function
             if "next_function" in func.arguments:
                 next = func.arguments["next_function"]
                 del func.arguments["next_function"]

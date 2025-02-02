@@ -7,8 +7,8 @@ requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.11.11",
     "hachoir>=3.3.0",
-    "huggingface-hub>=0.27.0",
     "ollama>=0.4.7",
+    "openai>=1.61.0",
     "pillow>=11.1.0",
     "portalocker>=3.0.0",
     "python-dotenv>=1.0.1",
