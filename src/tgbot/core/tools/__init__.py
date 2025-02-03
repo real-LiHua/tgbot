@@ -4,15 +4,15 @@ tools = []
 
 
 @singleton
-def Tool(c: dict = dict()):
+def Tool(x: dict = dict()):
     """
     Singleton function to add a tool configuration to the tools list.
 
     Args:
-        c (dict): Tool configuration dictionary. Defaults to an empty dictionary.
+        x (dict): Tool configuration dictionary. Defaults to an empty dictionary.
     """
-    if c:
-        tools.append(c)
+    if x:
+        tools.append(x)
 
 
 from . import SearXNG as _  # noqa
