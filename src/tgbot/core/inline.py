@@ -21,7 +21,7 @@ class Queue:
         if self._result.get(uuid):
             return self._dict[uuid]
         self._result[uuid] = await invoke_model(
-            "chat_completion", messages=self._dict[uuid]
+            "completions", messages=self._dict[uuid]
         )
 
     async def delete(self, uuid):

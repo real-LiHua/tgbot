@@ -7,6 +7,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
+from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
 
 
@@ -90,6 +91,7 @@ from . import Tool
 
 
 @Tool
+@pydantic_function_tool
 class SendReactionRequest(BaseModel):
     msg_id: int = Field(
         ...,

@@ -4,12 +4,14 @@
 
 from __future__ import annotations
 
+from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
 
 from . import Tool
 
 
 @Tool
+@pydantic_function_tool
 class UnpinMessage(BaseModel):
     message: int = Field(
         ...,

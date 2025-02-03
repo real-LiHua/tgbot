@@ -1,9 +1,3 @@
-from typing import Type
-
-from openai import pydantic_function_tool
-from pydantic import BaseModel
-
-
 class Tool(list):
     __obj = None
 
@@ -12,26 +6,24 @@ class Tool(list):
             cls.__obj = super().__new__(cls)
         return cls.__obj
 
-    def __init__(self, c: Type[BaseModel] = None):
+    def __init__(self, c: dict = None):
         if c:
-            self.append(pydantic_function_tool(c))
+            self.append(c)
 
 
-from . import (
-    SearXNG,
-    SendReactionRequest,
-    SetBotInfoRequest,
-    UploadProfilePhotoRequest,
-    delete_messages,
-    edit_admin,
-    edit_message,
-    forward_messages,
-    kick_participant,
-    pin_message,
-    send_file,
-    send_message,
-    text_to_image,
-    unpin_message,
-)
+from . import SearXNG as _  # noqa
+from . import SendReactionRequest as _
+from . import SetBotInfoRequest as _
+from . import UploadProfilePhotoRequest as _
+from . import delete_messages as _
+from . import edit_admin as _
+from . import edit_message as _
+from . import forward_messages as _
+from . import kick_participant as _
+from . import pin_message as _
+from . import send_file as _
+from . import send_message as _
+from . import text_to_image as _
+from . import unpin_message as _
 
 tools = Tool()
