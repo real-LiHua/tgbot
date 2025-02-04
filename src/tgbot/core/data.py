@@ -146,6 +146,18 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             {"role": "assistant", "content": str(event)}
         )
 
+    async def tool(self, event, result) -> None:
+        """
+        Add a tool message to the chat.
+
+        Args:
+            event (events.NewMessage.Event): The event containing message information.
+            result: The result of the tool.
+        """
+        self[await self._get_peer_id(event)].append(
+            {"role": "tool", "content": str(result)}
+        )
+
     async def get_data(self, chat_id: int) -> list[dict[str, str]]:
         """
         Get the data for a specific chat.
