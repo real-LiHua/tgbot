@@ -14,8 +14,8 @@ from .core.data import ChatData
 
 gc.set_debug(gc.get_debug() | gc.DEBUG_UNCOLLECTABLE)
 
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger("asyncio").setLevel(logging.ERROR)
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("asyncio").setLevel(logging.DEBUG)
 load_dotenv()
 
 

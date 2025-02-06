@@ -146,7 +146,7 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             {"role": "assistant", "content": str(event)}
         )
 
-    async def tool(self, event, result) -> None:
+    async def tool(self, event, tool_call_id, result) -> None:
         """
         Add a tool message to the chat.
 
@@ -155,7 +155,11 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
             result: The result of the tool.
         """
         self[await self._get_peer_id(event)].append(
-            {"role": "tool", "content": str(result)}
+            {
+                "role": "tool",
+                "tool_call_id": tool_call_id,
+                "content": str(result),
+            }
         )
 
     async def get_data(self, chat_id: int) -> list[dict[str, str]]:

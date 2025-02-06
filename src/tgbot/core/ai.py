@@ -1,3 +1,4 @@
+from json import loads
 from tempfile import mkstemp
 
 from dotenv import load_dotenv
@@ -89,9 +90,10 @@ async def init(bot: TelegramClient, data: ChatData):
                 await data.assistant(res)
                 return
             func = message.tool_calls[0].function
-            if "next_function" in func.arguments:
-                next = func.arguments["next_function"]
-                del func.arguments["next_function"]
+            args = loads(func.arguments)
+            if "next_function" in args:
+                next = args["next_function"]
+                del args["next_function"]
             else:
                 next = None
             match func.name:
@@ -99,52 +101,48 @@ async def init(bot: TelegramClient, data: ChatData):
                     res = await bot(
                         functions.messages.SendReactionRequest(
                             event.chat_id,
-                            func.arguments["msg_id"],
-                            reaction=func.arguments.get("reaction")
-                            and [
-                                types.ReactionEmoji(emoticon=func.arguments["reaction"])
-                            ],
+                            args["msg_id"],
+                            reaction=args.get("reaction")
+                            and [types.ReactionEmoji(emoticon=args["reaction"])],
                         ),
                     )
-                    used_functions.append((func, res))
+                    await data.tool(event, message.tool_calls[0].id, res)
                 case "UploadProfilePhotoRequest":
-                    if isinstance(func.arguments.get("file"), int):
+                    if isinstance(args.get("file"), int):
                         _, name = mkstemp()
-                        file = used_functions[func.arguments["file"]][1]
+                        file = used_functions[args["file"]][1]
                         match file.__class__.__name__:
                             case "JpegImageFile":
                                 file.save(f"{name}.jpg")
-                                func.arguments["file"] = f"{name}.jpg"
-                    await bot(
+                                args["file"] = f"{name}.jpg"
+                    res = await bot(
                         functions.photos.UploadProfilePhotoRequest(
-                            file=await bot.upload_file(func.arguments["file"])
+                            file=await bot.upload_file(args["file"])
                         )
                     )
                 case "SetBotInfoRequest":
-                    await bot(functions.bots.SetBotInfoRequest(**func.arguments))
+                    res = await bot(functions.bots.SetBotInfoRequest(**args))
                 case "SearXNG":
-                    pass
+                    res = None
                 case _:
                     try:
                         callback = getattr(bot, func.name)
-                        entity = func.arguments.get("entity")
+                        entity = args.get("entity")
                         if entity:
-                            del func.arguments["entity"]
+                            del args["entity"]
                         else:
                             entity = event.chat_id
-                        if isinstance(func.arguments.get("file"), int):
+                        if isinstance(args.get("file"), int):
                             _, name = mkstemp()
-                            file = used_functions[func.arguments["file"]][1]
+                            file = used_functions[args["file"]][1]
                             match file.__class__.__name__:
                                 case "JpegImageFile":
                                     file.save(f"{name}.jpg")
-                                    func.arguments["file"] = f"{name}.jpg"
-                        if func.arguments.get("user"):
-                            func.arguments["user"] = await bot.get_input_entity(
-                                func.arguments["user"]
-                            )
-                        res = await callback(entity, **func.arguments)
-                        used_functions.append((func, res))
+                                    args["file"] = f"{name}.jpg"
+                        if args.get("user"):
+                            args["user"] = await bot.get_input_entity(args["user"])
+                        res = await callback(entity, **args)
                     except AttributeError:
-                        res = await invoke_model(func.name, **func.arguments)
-                        used_functions.append((func, res))
+                        res = await invoke_model(func.name, **args)
+            if res:
+                await data.tool(event, message.tool_calls[0].id, res)
