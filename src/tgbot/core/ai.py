@@ -29,7 +29,7 @@ async def invoke_model(name: str, **arguments):
     """
     for lm in config.get(name, []):
         print(lm)
-        for auth in lm.auth:
+        for auth in lm.get("auth", []):
             if auth.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
                 # TODO: 白嫖 duckchat
                 pass
