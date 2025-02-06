@@ -1,6 +1,7 @@
 from json import loads
 from tempfile import mkstemp
 
+from aiohttp import ClientSession
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from ruamel.yaml import YAML
@@ -119,6 +120,22 @@ async def init(bot: TelegramClient, data: ChatData):
                 case "SetBotInfoRequest":
                     res = await bot(functions.bots.SetBotInfoRequest(**args))
                 case "SearXNG":
+                    tor = config.get("tor", {})
+                    async with ClientSession() as session:
+                        async with session.get(
+                            "https://searx.space/data/instances.json"
+                        ) as response:
+                            searxng = await response.json()
+                            for base_url, status in searxng["instances"].items():
+                                if status["network_type"] == "tor":
+                                    if not tor:
+                                        continue
+                                    else:
+                                        proxy_host = tor.get(
+                                            "host", tor.get("ip", "127.0.0.1")
+                                        )
+                                        proxy_port = tor.get("port", 9050)
+                                print(base_url)
                     res = None
                 case _:
                     try:

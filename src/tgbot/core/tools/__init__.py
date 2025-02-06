@@ -1,3 +1,4 @@
+from openai import pydantic_function_tool
 from singleton_decorator import singleton
 
 tools = []
