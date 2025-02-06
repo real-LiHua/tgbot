@@ -10,7 +10,7 @@ from . import Tool
 
 @Tool
 @pydantic_function_tool
-class EditAdmin(BaseModel):
+class edit_admin(BaseModel):
     user: int = Field(..., description="用户ID")
     change_info: Optional[bool] = Field(
         None, description="Whether the user will be able to change info."

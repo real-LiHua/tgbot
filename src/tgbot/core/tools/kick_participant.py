@@ -10,6 +10,6 @@ from . import Tool
 
 @Tool
 @pydantic_function_tool
-class KickParticipant(BaseModel):
+class kick_participant(BaseModel):
     user: int = Field(..., description="The user to kick.")
     next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")

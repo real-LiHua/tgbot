@@ -10,6 +10,6 @@ from . import Tool
 
 @Tool
 @pydantic_function_tool
-class DeleteMessages(BaseModel):
+class delete_messages(BaseModel):
     message_ids: List = Field(..., description="The IDs to be deleted.")
     next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")

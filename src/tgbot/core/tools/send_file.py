@@ -10,7 +10,7 @@ from . import Tool
 
 @Tool
 @pydantic_function_tool
-class SendFile(BaseModel):
+class send_file(BaseModel):
     file: int = Field(..., description="已使用函数的列表下标，用于从中获取文件对象")
     caption: Optional[str] = Field(
         None,

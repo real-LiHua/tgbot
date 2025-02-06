@@ -2,7 +2,6 @@ from json import loads
 from tempfile import mkstemp
 
 from dotenv import load_dotenv
-from ollama import AsyncClient
 from openai import AsyncOpenAI
 from ruamel.yaml import YAML
 from telethon import TelegramClient, events, functions, types
@@ -30,27 +29,24 @@ async def invoke_model(name: str, **arguments):
     """
     for lm in config.get(name, []):
         print(lm)
-        if lm.get("type") == "ollama":
-            return await AsyncClient(lm.get("host")).chat(
-                lm.get("model", ""), **arguments
+        for auth in lm.auth:
+            if auth.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
+                # TODO: 白嫖 duckchat
+                pass
+            client: AsyncOpenAI = AsyncOpenAI(
+                base_url=auth.get("base_url"),
+                api_key=auth.get("api_key"),
             )
-        if lm.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
-            # TODO: 白嫖 duckchat
-            pass
-        client: AsyncOpenAI = AsyncOpenAI(
-            base_url=lm.get("base_url"),
-            api_key=lm.get("api_key"),
-        )
-        match name:
-            case "completions":
-                callback = client.chat.completions
-            case _:
-                callback = getattr(client, name)
-        try:
-            arguments["model"] = lm.get("model")
-            return await callback.create(**arguments)
-        except Exception as e:
-            print(e)
+            match name:
+                case "completions":
+                    callback = client.chat.completions
+                case _:
+                    callback = getattr(client, name)
+            try:
+                arguments["model"] = lm.get("model")
+                return await callback.create(**arguments)
+            except Exception as e:
+                print(e)
 
 
 async def init(bot: TelegramClient, data: ChatData):

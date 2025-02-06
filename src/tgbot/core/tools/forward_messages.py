@@ -10,7 +10,7 @@ from . import Tool
 
 @Tool
 @pydantic_function_tool
-class ForwardMessages(BaseModel):
+class forward_messages(BaseModel):
     entity: int = Field(
         ..., description="To which entity the message(s) will be forwarded."
     )
