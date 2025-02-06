@@ -46,3 +46,4 @@ class EditAdmin(BaseModel):
         None,
         description="The custom title (also known as “rank”) to show for this admin. This text will be shown instead of the “admin” badge. This will only work in channels and megagroups. When left unspecified or empty, the default localized “admin” badge will be shown.",
     )
+    next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")

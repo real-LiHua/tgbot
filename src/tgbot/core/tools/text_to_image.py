@@ -16,3 +16,4 @@ class images(BaseModel):
         ...,
         description="The size of the generated images.",
     )
+    next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")

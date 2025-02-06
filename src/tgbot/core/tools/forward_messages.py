@@ -23,3 +23,4 @@ class ForwardMessages(BaseModel):
         None,
         description="Whether the message should notify people in a broadcast channel or not. Defaults to False, which means it will notify them. Set it to True to alter this behaviour.",
     )
+    next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")

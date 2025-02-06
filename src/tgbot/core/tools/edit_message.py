@@ -19,3 +19,4 @@ class EditMessage(BaseModel):
     link_preview: Optional[bool] = Field(
         None, description="Should the link preview be shown?"
     )
+    next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")

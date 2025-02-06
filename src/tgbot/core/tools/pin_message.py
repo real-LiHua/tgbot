@@ -15,3 +15,4 @@ class PinMessage(BaseModel):
     notify: Optional[bool] = Field(
         None, description="Whether the pin should notify people or not."
     )
+    next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")
