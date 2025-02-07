@@ -1,3 +1,4 @@
+import os
 from json import loads
 from tempfile import mkstemp
 
@@ -13,7 +14,12 @@ from .tools import tools
 # Load environment variables from a .env file
 load_dotenv()
 
-with open("config.yaml") as file:
+config_path = "config.yaml"
+if not os.path.exists(config_path):
+    xdg_config_home = os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
+    config_path = os.path.join(xdg_config_home, "tgbot", "config.yaml")
+
+with open(config_path) as file:
     config = YAML().load(file)
     tor = config.get("tor", dict())
     tor_proxy = tor.get("proxy", "socks5://127.0.0.1:9050") if tor else None
@@ -107,6 +113,7 @@ async def init(bot: TelegramClient, data: ChatData):
                                 ),
                             )
                         case "UploadProfilePhotoRequest":
+                            # TODO:
                             if isinstance(args.get("file"), int):
                                 _, name = mkstemp()
                                 file = used_functions[args["file"]][1]
@@ -122,6 +129,7 @@ async def init(bot: TelegramClient, data: ChatData):
                         case "SetBotInfoRequest":
                             res = await bot(functions.bots.SetBotInfoRequest(**args))
                         case "SearXNG":
+                            # TODO:
                             res = None
                             args["format"] = "json"
                             async with ClientSession() as session:
@@ -150,6 +158,7 @@ async def init(bot: TelegramClient, data: ChatData):
                                     del args["entity"]
                                 else:
                                     entity = event.chat_id
+                                # TODO:
                                 if isinstance(args.get("file"), int):
                                     _, name = mkstemp()
                                     file = used_functions[args["file"]][1]

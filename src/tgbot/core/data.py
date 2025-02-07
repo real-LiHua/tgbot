@@ -93,17 +93,20 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
     async def _get_peer_id(self, event) -> str:
         try:
             peer_id: str = str(get_peer_id(event.message.peer_id))
-        except AttributeError:
+        except AttributeError as _:
             try:
                 peer_id = str(get_peer_id(event.peer))
-            except AttributeError:
+            except AttributeError as _:
                 try:
                     peer_id = f"-200{event.channel_id}"
-                except AttributeError:
+                except AttributeError as _:
                     try:
                         peer_id = f"-200{event.chat_id}"
-                    except AttributeError:
+                    except AttributeError as _:
                         peer_id = str(event.users[0].id)
+        match event.__class__.__name__:
+            case "UpdateNewMessage" | "UpdateEditMessage":
+                peer_id = str(get_peer_id(event.message.peer_id))
         return peer_id
 
     async def system(

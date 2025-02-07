@@ -10,6 +10,7 @@ from .data import ChatData
 class Queue:
     def __init__(self):
         self._index = []
+        self._status = dict()
         self._dict = dict()
         self._result = dict()
 
@@ -20,6 +21,9 @@ class Queue:
     async def get(self, uuid):
         if self._result.get(uuid):
             return self._result[uuid]
+        if self._status.get(uuid) == "loading":
+            return
+        self._status[uuid] = "loading"
         response = await invoke_model(
             "completions",
             messages=[
@@ -28,6 +32,7 @@ class Queue:
             ],
         )
         self._result[uuid] = response.choices[0].message.content
+        del self._status[uuid]
         return self._result[uuid]
 
     async def query(self, uuid):
