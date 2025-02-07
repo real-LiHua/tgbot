@@ -1,21 +1,16 @@
-# tgbot
+# Telegram Bot Project
 
-A Telegram bot project.
-
-## Description
-
-This project is a Telegram bot that utilizes various AI models and tools to interact with users. The bot is built using Python and leverages several libraries and APIs to provide its functionality.
+This project is a Telegram bot built using Python. The bot is designed to handle various commands and events, interact with users, and perform tasks using AI models and tools.
 
 ## Configuration
 
-The configuration for the bot is done using a YAML file. Below is an example configuration file (`config.yaml`) and a detailed explanation of each section and its parameters.
+The configuration for this bot is done using a YAML file. Below is an example configuration file (`config.yaml`) and a detailed explanation of each section and its parameters.
 
 ### Example Configuration (`config.yaml`)
 
 ```yaml
 tor:
-  ip: 127.0.0.1
-  port: 9050
+  proxy: socks5://127.0.0.1:9050
 
 auth: &auth
   - base_url: "https://api.siliconflow.cn/v1"
@@ -30,10 +25,13 @@ auth: &auth
 completions:
   - model: "Qwen/Qwen2.5-Coder-32B-Instruct"
     auth: *auth
+    tool: true
   - model: "Qwen/Qwen2.5-72B-Instruct"
     auth: *auth
+    tool: true
   - model: "meta-llama/Llama-3.3-70B-Instruct"
     auth: *auth
+    tool: true
   - model: "deepseek-r1"
     auth: *auth
 
@@ -52,48 +50,46 @@ images:
 
 #### `tor`
 
-This section configures the Tor proxy settings.
-
-- `ip` (string): The IP address of the Tor proxy. Default is `127.0.0.1`.
-- `port` (integer): The port number of the Tor proxy. Default is `9050`.
+- **proxy**: The proxy URL for TOR. This is used to route requests through the TOR network.
 
 #### `auth`
 
-This section defines the authentication details for various AI model APIs. It uses YAML anchors (`&auth`) and aliases (`*auth`) to reuse the same authentication details across multiple models.
+A list of authentication configurations for different AI services. Each entry contains:
 
-- `base_url` (string): The base URL of the API.
-- `api_key` (string): The API key for authentication.
+- **base_url**: The base URL of the AI service.
+- **api_key**: The API key for accessing the AI service.
 
 #### `completions`
 
-This section lists the AI models used for text completions.
+A list of AI models used for generating text completions. Each entry contains:
 
-- `model` (string): The name of the AI model.
-- `auth` (list): A list of authentication details, referenced from the `auth` section.
+- **model**: The name of the AI model.
+- **auth**: A reference to the authentication configurations defined in the `auth` section.
+- **tool**: A boolean indicating whether the model uses tools.
 
 #### `images`
 
-This section lists the AI models used for image generation.
+A list of AI models used for generating images. Each entry contains:
 
-- `model` (string): The name of the AI model.
-- `auth` (list): A list of authentication details, referenced from the `auth` section.
+- **model**: The name of the AI model.
+- **auth**: A reference to the authentication configurations defined in the `auth` section.
 
 ## Dependencies
 
-The project uses the following dependencies, specified in the `pyproject.toml` file:
+The project dependencies are specified in the `pyproject.toml` file. Here is a list of the main dependencies:
 
-- `aiohttp>=3.11.11`
-- `hachoir>=3.3.0`
-- `openai>=1.61.0`
-- `pillow>=11.1.0`
-- `portalocker>=3.0.0`
-- `python-dotenv>=1.0.1`
-- `regex>=2024.11.6`
-- `ruamel-yaml>=0.18.10`
-- `singleton-decorator>=1.0.0`
-- `telethon>=1.38.1`
+- `aiohttp`: Asynchronous HTTP client.
+- `hachoir`: Library for parsing binary files.
+- `openai`: OpenAI API client.
+- `pillow`: Python Imaging Library.
+- `portalocker`: File locking library.
+- `python-dotenv`: Library for loading environment variables from a `.env` file.
+- `regex`: Regular expression library.
+- `ruamel-yaml`: YAML parser and emitter for Python.
+- `singleton-decorator`: Singleton pattern decorator.
+- `telethon`: Telegram client library.
 
-## Usage
+## Running the Bot
 
 To run the bot, follow these steps:
 
@@ -102,23 +98,17 @@ To run the bot, follow these steps:
    pip install -r .
    ```
 
-2. Create a `.env` file with your environment variables:
+2. Create a `.env` file with the following environment variables:
    ```env
-   BOT_TOKEN=your_bot_token
-   SECRET=your_secret
+   BOT_TOKEN=your-telegram-bot-token
+   SECRET=your-secret
    ```
 
-3. Create a `config.yaml` file with your configuration.
+3. Create a `config.yaml` file based on the example provided above.
 
 4. Run the bot:
    ```sh
    python -m tgbot
    ```
-# TODO
 
-- [ ] Import message history
-- [x] Inline AI assistant
-- [ ] Plugin management
-- [ ] UserBot
-- [ ] Web penetration testing
-- [ ] Web search
+The bot will start and connect to Telegram using the provided bot token. It will handle commands and events as defined in the source code.

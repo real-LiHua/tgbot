@@ -16,7 +16,7 @@ load_dotenv()
 with open("config.yaml") as file:
     config = YAML().load(file)
     tor = config.get("tor", dict())
-    tor_proxy = tor.get("proxy", "socks5://127.0.0.1:9050")
+    tor_proxy = tor.get("proxy", "socks5://127.0.0.1:9050") if tor else None
     tor_proxy_auth = tor.get("proxy_auth")
 
 
@@ -31,7 +31,10 @@ async def invoke_model(name: str, **arguments):
     Returns:
         The response from the model.
     """
+    use_tools = bool(arguments.get("tools"))
     for lm in config.get(name, []):
+        if use_tools and not lm.get("tool"):
+            continue
         for auth in lm.get("auth", []):
             if auth.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
                 # TODO: 白嫖 duckchat

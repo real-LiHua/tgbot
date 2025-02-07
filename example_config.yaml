@@ -14,10 +14,13 @@ auth: &auth
 completions:
   - model: "Qwen/Qwen2.5-Coder-32B-Instruct"
     auth: *auth
+    tool: true
   - model: "Qwen/Qwen2.5-72B-Instruct"
     auth: *auth
+    tool: true
   - model: "meta-llama/Llama-3.3-70B-Instruct"
     auth: *auth
+    tool: true
   - model: "deepseek-r1"
     auth: *auth
 
