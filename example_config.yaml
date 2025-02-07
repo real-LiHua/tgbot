@@ -1,6 +1,5 @@
 tor:
-  ip: 127.0.0.1
-  port: 9050
+  proxy: socks5://127.0.0.1:9050
 
 auth: &auth
   - base_url: "https://api.siliconflow.cn/v1"

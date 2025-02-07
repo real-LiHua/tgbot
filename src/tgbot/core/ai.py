@@ -16,8 +16,8 @@ load_dotenv()
 with open("config.yaml") as file:
     config = YAML().load(file)
     tor = config.get("tor", dict())
-    proxy_host = tor.get("host", tor.get("ip", "127.0.0.1"))
-    proxy_port = tor.get("port", 9050)
+    tor_proxy = tor.get("proxy", "socks5://127.0.0.1:9050")
+    tor_proxy_auth = tor.get("proxy_auth")
 
 
 async def invoke_model(name: str, **arguments):
@@ -70,71 +70,38 @@ async def init(bot: TelegramClient, data: ChatData):
             event (events.NewMessage.Event): The new message event.
         """
         used_functions = []
-        response = await invoke_model(
-            "completions",
-            messages=(await data.get_data(event.chat_id))
-            + [{"role": "user", "content": str(event.original_update)}],
-            max_tokens=1000,
-            tools=tools,
-        )
-        print(response)
-        if not response or not response.choices:
-            await event.reply("模型无响应")
-            return
-        message = response.choices[0].message
-        if not message.tool_calls:
-            res = await event.reply(message.content)
-            await data.assistant(res)
-            return
-        for tool in message.tool_calls:
-            func = tool.function
-            args = loads(func.arguments)
-            try:
-                match func.name:
-                    case "SendReactionRequest":
-                        res = await bot(
-                            functions.messages.SendReactionRequest(
-                                event.chat_id,
-                                args["msg_id"],
-                                reaction=args.get("reaction")
-                                and [types.ReactionEmoji(emoticon=args["reaction"])],
-                            ),
-                        )
-                    case "UploadProfilePhotoRequest":
-                        if isinstance(args.get("file"), int):
-                            _, name = mkstemp()
-                            file = used_functions[args["file"]][1]
-                            match file.__class__.__name__:
-                                case "JpegImageFile":
-                                    file.save(f"{name}.jpg")
-                                    args["file"] = f"{name}.jpg"
-                        res = await bot(
-                            functions.photos.UploadProfilePhotoRequest(
-                                file=await bot.upload_file(args["file"])
+        for count in range(2):
+            response = await invoke_model(
+                "completions",
+                messages=(await data.get_data(event.chat_id))
+                + [{"role": "user", "content": str(event.original_update)}],
+                max_tokens=1000,
+                tools=tools,
+            )
+            print(response)
+            if not response or not response.choices:
+                await event.reply("模型无响应")
+                return
+            message = response.choices[0].message
+            if not message.tool_calls:
+                res = await event.reply(message.content)
+                await data.assistant(res)
+                return
+            for tool in message.tool_calls:
+                func = tool.function
+                args = loads(func.arguments)
+                try:
+                    match func.name:
+                        case "SendReactionRequest":
+                            res = await bot(
+                                functions.messages.SendReactionRequest(
+                                    event.chat_id,
+                                    args["msg_id"],
+                                    reaction=args.get("reaction")
+                                    and [types.ReactionEmoji(emoticon=args["reaction"])],
+                                ),
                             )
-                        )
-                    case "SetBotInfoRequest":
-                        res = await bot(functions.bots.SetBotInfoRequest(**args))
-                    case "SearXNG":
-                        async with ClientSession() as session:
-                            async with session.get(
-                                "https://searx.space/data/instances.json"
-                            ) as response:
-                                searxng = await response.json()
-                                for base_url, status in searxng["instances"].items():
-                                    if status["network_type"] == "tor":
-                                        if not tor:
-                                            continue
-                                        print(base_url)
-                        res = None
-                    case _:
-                        try:
-                            callback = getattr(bot, func.name)
-                            entity = args.get("entity")
-                            if entity:
-                                del args["entity"]
-                            else:
-                                entity = event.chat_id
+                        case "UploadProfilePhotoRequest":
                             if isinstance(args.get("file"), int):
                                 _, name = mkstemp()
                                 file = used_functions[args["file"]][1]
@@ -142,14 +109,48 @@ async def init(bot: TelegramClient, data: ChatData):
                                     case "JpegImageFile":
                                         file.save(f"{name}.jpg")
                                         args["file"] = f"{name}.jpg"
-                                if args.get("user"):
-                                    args["user"] = await bot.get_input_entity(
-                                        args["user"]
-                                    )
-                            res = await callback(entity, **args)
-                        except AttributeError:
-                            res = await invoke_model(func.name, **args)
-                if res:
-                    await data.tool(event, tool.id, res)
-            except Exception as e:
-                print(e)
+                            res = await bot(
+                                functions.photos.UploadProfilePhotoRequest(
+                                    file=await bot.upload_file(args["file"])
+                                )
+                            )
+                        case "SetBotInfoRequest":
+                            res = await bot(functions.bots.SetBotInfoRequest(**args))
+                        case "SearXNG":
+                            async with ClientSession() as session:
+                                async with session.get(
+                                    "https://searx.space/data/instances.json"
+                                ) as response:
+                                    searxng = await response.json()
+                                    for base_url, status in searxng["instances"].items():
+                                        if status["network_type"] == "tor":
+                                            if not tor:
+                                                continue
+                                            print(base_url)
+                            res = None
+                        case _:
+                            try:
+                                callback = getattr(bot, func.name)
+                                entity = args.get("entity")
+                                if entity:
+                                    del args["entity"]
+                                else:
+                                    entity = event.chat_id
+                                if isinstance(args.get("file"), int):
+                                    _, name = mkstemp()
+                                    file = used_functions[args["file"]][1]
+                                    match file.__class__.__name__:
+                                        case "JpegImageFile":
+                                            file.save(f"{name}.jpg")
+                                            args["file"] = f"{name}.jpg"
+                                    if args.get("user"):
+                                        args["user"] = await bot.get_input_entity(
+                                            args["user"]
+                                        )
+                                res = await callback(entity, **args)
+                            except AttributeError:
+                                res = await invoke_model(func.name, **args)
+                    if res:
+                        await data.tool(event, tool.id, res)
+                except Exception as e:
+                    print(e)

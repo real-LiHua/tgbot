@@ -100,7 +100,10 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
                 try:
                     peer_id = f"-200{event.channel_id}"
                 except AttributeError:
-                    peer_id = f"-200{event.chat_id}"
+                    try:
+                        peer_id = f"-200{event.chat_id}"
+                    except AttributeError:
+                        peer_id = str(event.users[0].id)
         return peer_id
 
     async def system(
