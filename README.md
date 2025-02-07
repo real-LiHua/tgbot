@@ -114,5 +114,11 @@ To run the bot, follow these steps:
    ```sh
    python -m tgbot
    ```
+# TODO
 
-The bot will start and connect to Telegram using the provided bot token. It will use the configuration specified in `config.yaml` to interact with users and perform various tasks.
+- [ ] Import message history
+- [ ] Inline AI assistant
+- [ ] Plugin management
+- [ ] UserBot
+- [ ] Web penetration testing
+- [ ] Web search

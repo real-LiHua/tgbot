@@ -15,6 +15,9 @@ load_dotenv()
 
 with open("config.yaml") as file:
     config = YAML().load(file)
+    tor = config.get("tor", dict())
+    proxy_host = tor.get("host", tor.get("ip", "127.0.0.1"))
+    proxy_port = tor.get("port", 9050)
 
 
 async def invoke_model(name: str, **arguments):
@@ -29,7 +32,6 @@ async def invoke_model(name: str, **arguments):
         The response from the model.
     """
     for lm in config.get(name, []):
-        print(lm)
         for auth in lm.get("auth", []):
             if auth.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
                 # TODO: 白嫖 duckchat
@@ -114,7 +116,6 @@ async def init(bot: TelegramClient, data: ChatData):
                     case "SetBotInfoRequest":
                         res = await bot(functions.bots.SetBotInfoRequest(**args))
                     case "SearXNG":
-                        tor = config.get("tor", {})
                         async with ClientSession() as session:
                             async with session.get(
                                 "https://searx.space/data/instances.json"
@@ -124,11 +125,6 @@ async def init(bot: TelegramClient, data: ChatData):
                                     if status["network_type"] == "tor":
                                         if not tor:
                                             continue
-                                        else:
-                                            proxy_host = tor.get(
-                                                "host", tor.get("ip", "127.0.0.1")
-                                            )
-                                            proxy_port = tor.get("port", 9050)
                                         print(base_url)
                         res = None
                     case _:
