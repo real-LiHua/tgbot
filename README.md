@@ -1,94 +1,118 @@
-## Telegram Bot
+# tgbot
 
-This repository contains a Telegram bot built using the Telethon library. The bot is designed to handle various commands and events, including AI responses, message logging, and more.
+A Telegram bot project.
 
-### Prerequisites
+## Description
 
-- Python 3.10+
-- A Telegram bot token (obtainable from [BotFather](https://t.me/botfather))
-- `pip` for installing Python packages
+This project is a Telegram bot that utilizes various AI models and tools to interact with users. The bot is built using Python and leverages several libraries and APIs to provide its functionality.
 
-### Installation
+## Configuration
 
-1. Clone the repository:
+The configuration for the bot is done using a YAML file. Below is an example configuration file (`config.yaml`) and a detailed explanation of each section and its parameters.
 
-    ```sh
-    git clone https://github.com/real-LiHua/tgbot
-    cd tgbot
-    ```
+### Example Configuration (`config.yaml`)
 
-2. Create a virtual environment and activate it:
+```yaml
+tor:
+  ip: 127.0.0.1
+  port: 9050
 
-    ```sh
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
+auth: &auth
+  - base_url: "https://api.siliconflow.cn/v1"
+    api_key: "sk-**************************************"
+  - base_url: "https://huggingface.co/api/inference-proxy/together"
+    api_key: "hf_**************************************"
+  - base_url: "https://integrate.api.nvidia.com/v1"
+    api_key: "nvapi-***********************************"
+  - base_url: "https://openrouter.ai/api/v1"
+    api_key: "sk-or-v1-********************************"
 
-3. Install the required packages:
+completions:
+  - model: "Qwen/Qwen2.5-Coder-32B-Instruct"
+    auth: *auth
+  - model: "Qwen/Qwen2.5-72B-Instruct"
+    auth: *auth
+  - model: "meta-llama/Llama-3.3-70B-Instruct"
+    auth: *auth
+  - model: "deepseek-r1"
+    auth: *auth
 
-    ```sh
-    pip install -r .
-    ```
+images:
+  - model: "black-forest-labs/FLUX.1-dev"
+    auth: *auth
+  - model: "stabilityai/stable-diffusion-3.5-large"
+    auth: *auth
+  - model: "stabilityai/stable-diffusion-3-medium"
+    auth: *auth
+  - model: "stabilityai/stable-diffusion-xl-base-1.0"
+    auth: *auth
+```
 
-4. Create a `.env` file in the root directory and add your bot token and other environment variables:
+### Configuration Sections
 
-    ```env
-    BOT_TOKEN=your_bot_token
-    SECRET=your_secret
-    ```
+#### `tor`
 
-5. Create a `config.yaml` file in the root directory with the necessary configuration for AI models:
+This section configures the Tor proxy settings.
 
-    ```yaml
-    chat_completion:
-      - type: ollama
-        host: your_host
-        model: your_model
-      - base_url: https://api.openai.com/v1
-        api_key: your_openai_api_key
-        model: your_openai_model
-    ```
+- `ip` (string): The IP address of the Tor proxy. Default is `127.0.0.1`.
+- `port` (integer): The port number of the Tor proxy. Default is `9050`.
 
-### Usage
+#### `auth`
 
-1. Run the bot:
+This section defines the authentication details for various AI model APIs. It uses YAML anchors (`&auth`) and aliases (`*auth`) to reuse the same authentication details across multiple models.
 
-    ```sh
-    python -m tgbot
-    ```
+- `base_url` (string): The base URL of the API.
+- `api_key` (string): The API key for authentication.
 
-2. The bot will start and connect to Telegram. You can interact with it using the following commands:
+#### `completions`
 
-    - `/ai`: Invoke the AI model to respond to messages.
-    - `/ping`: Check the bot's response time.
-    - `/reset`: Clear the chat data.
-    - `/import_history`: Import message history from a file.
+This section lists the AI models used for text completions.
 
-### Project Structure
+- `model` (string): The name of the AI model.
+- `auth` (list): A list of authentication details, referenced from the `auth` section.
 
-- `src/tgbot/core/ai.py`: Handles AI model invocations and responses.
-- `src/tgbot/core/data.py`: Manages chat data and system messages.
-- `src/tgbot/core/history.py`: Logs message history and handles raw events.
-- `src/tgbot/core/inline.py`: Handles inline queries and callback queries.
-- `src/tgbot/core/ping.py`: Implements the `/ping` command.
-- `src/tgbot/core/reset.py`: Implements the `/reset` command.
-- `src/tgbot/core/tools/`: Contains various tools and request models.
-- `src/tgbot/__main__.py`: Main entry point for running the bot.
-- `src/tgbot/plugins/`: Directory for additional plugins.
+#### `images`
 
-### Configuration
+This section lists the AI models used for image generation.
 
-- **Environment Variables**:
-  - `BOT_TOKEN`: Your Telegram bot token.
-  - `SECRET`: A secret value used in system messages.
+- `model` (string): The name of the AI model.
+- `auth` (list): A list of authentication details, referenced from the `auth` section.
 
-- **config.yaml**:
-  - `chat_completion`: Configuration for AI models, including type, host, base URL, API key, and model name.
+## Dependencies
 
-### Contributing
+The project uses the following dependencies, specified in the `pyproject.toml` file:
 
-Contributions are welcome! Please fork the repository and submit a pull request.
+- `aiohttp>=3.11.11`
+- `hachoir>=3.3.0`
+- `openai>=1.61.0`
+- `pillow>=11.1.0`
+- `portalocker>=3.0.0`
+- `python-dotenv>=1.0.1`
+- `regex>=2024.11.6`
+- `ruamel-yaml>=0.18.10`
+- `singleton-decorator>=1.0.0`
+- `telethon>=1.38.1`
 
-### Contact
+## Usage
 
-For any questions or issues, please open an issue on GitHub or contact the repository owner.
+To run the bot, follow these steps:
+
+1. Install the dependencies:
+   ```sh
+   pip install -r .
+   ```
+
+2. Create a `.env` file with your environment variables:
+   ```env
+   BOT_TOKEN=your_bot_token
+   SECRET=your_secret
+   ```
+
+3. Create a `config.yaml` file with your configuration.
+
+4. Run the bot:
+   ```sh
+   python -m tgbot
+   ```
+
+The bot will start and connect to Telegram using the provided bot token. It will use the configuration specified in `config.yaml` to interact with users and perform various tasks.
