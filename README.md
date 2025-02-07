@@ -117,7 +117,7 @@ To run the bot, follow these steps:
 # TODO
 
 - [ ] Import message history
-- [ ] Inline AI assistant
+- [x] Inline AI assistant
 - [ ] Plugin management
 - [ ] UserBot
 - [ ] Web penetration testing

@@ -38,7 +38,7 @@ async def invoke_model(name: str, **arguments):
                 pass
             client: AsyncOpenAI = AsyncOpenAI(
                 base_url=auth.get("base_url"),
-                api_key=auth.get("api_key"),
+                api_key=auth.get("api_key", ""),
             )
             match name:
                 case "completions":
