@@ -98,7 +98,9 @@ async def init(bot: TelegramClient, data: ChatData):
                                     event.chat_id,
                                     args["msg_id"],
                                     reaction=args.get("reaction")
-                                    and [types.ReactionEmoji(emoticon=args["reaction"])],
+                                    and [
+                                        types.ReactionEmoji(emoticon=args["reaction"])
+                                    ],
                                 ),
                             )
                         case "UploadProfilePhotoRequest":
@@ -117,17 +119,26 @@ async def init(bot: TelegramClient, data: ChatData):
                         case "SetBotInfoRequest":
                             res = await bot(functions.bots.SetBotInfoRequest(**args))
                         case "SearXNG":
+                            res = None
+                            args["format"] = "json"
                             async with ClientSession() as session:
                                 async with session.get(
                                     "https://searx.space/data/instances.json"
                                 ) as response:
                                     searxng = await response.json()
-                                    for base_url, status in searxng["instances"].items():
-                                        if status["network_type"] == "tor":
+                                    for url, info in searxng["instances"].items():
+                                        if info["network_type"] == "tor":
                                             if not tor:
                                                 continue
-                                            print(base_url)
-                            res = None
+                                        async with session.get(
+                                            url,
+                                            params=args,
+                                            proxy=tor_proxy,
+                                            proxy_auth=tor_proxy_auth,
+                                        ) as r:
+                                            if r.status != 200:
+                                                continue
+                                            res = await r.json()
                         case _:
                             try:
                                 callback = getattr(bot, func.name)
