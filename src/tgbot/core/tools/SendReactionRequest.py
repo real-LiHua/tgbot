@@ -97,4 +97,3 @@ class SendReactionRequest(BaseModel):
         None,
         description="A JSON-serialized list of reaction types to set on the message. A custom emoji reaction can be used if it is either already present on the message or explicitly allowed by chat administrators.",
     )
-    next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")

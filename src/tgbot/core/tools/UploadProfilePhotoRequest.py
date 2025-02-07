@@ -12,4 +12,3 @@ from . import Tool
 @pydantic_function_tool
 class UploadProfilePhotoRequest(BaseModel):
     file: int = Field(..., description="已使用函数的列表下标，用于从中获取文件对象")
-    next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")

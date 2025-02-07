@@ -15,4 +15,3 @@ class unpin_message(BaseModel):
         ...,
         description="消息ID，可从Telegram消息链接获取, 例如：https://t.me/{chat_id}/{message_id}",
     )
-    next_function: Optional[str] = Field(None, description="下一个要调用函数的名称")
