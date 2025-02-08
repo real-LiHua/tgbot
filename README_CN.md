@@ -1,26 +1,26 @@
-# 说明
-
 ## 概述
 
-该项目是一个使用 Telethon 库构建的 Telegram 机器人。该机器人提供各种功能，如 AI 响应、消息处理和管理工具。配置使用 YAML 文件进行管理。
+该项目是一个使用 Telethon 库构建的 Telegram 机器人。机器人提供了各种功能，如 AI 响应、消息处理和管理工具。配置使用 YAML 文件进行管理。
 
 ## 功能
 
 - **AI 响应**：机器人可以调用 AI 模型生成用户消息的响应。
 - **消息处理**：机器人可以处理新消息、编辑消息和转发消息。
 - **管理工具**：机器人提供管理聊天参与者的工具，如踢出参与者、置顶/取消置顶消息和编辑管理员权限。
-- **历史导入**：机器人可以从文件中导入消息历史。
+- **历史导入**：机器人可以从文件导入消息历史。
 - **内联查询**：机器人支持内联查询以提供 AI 生成的响应。
 
 ## 配置
 
-配置使用 YAML 文件 (`config.yaml`) 进行管理。配置文件遵循 YAML 1.2 规范。
+配置使用 YAML 文件（`config.yaml`）进行管理。配置文件遵循 YAML 1.2 规范。
 
 ### 配置结构
 
 ```yaml
-tor:
-  proxy: socks5://127.0.0.1:9050
+telegram:
+  app_id: 611335
+  app_hash: "d524b414d21f4d37f08684c1df41ac9c"
+  bot_token: "********:********************************"
 
 auth: &auth
   - base_url: "https://api.siliconflow.cn/v1"
@@ -54,40 +54,42 @@ images:
     auth: *auth
   - model: "stabilityai/stable-diffusion-xl-base-1.0"
     auth: *auth
+
+tor:
+  proxy: socks5://127.0.0.1:9050
 ```
 
 ### 配置字段
 
-- **tor**：Tor 代理的配置。
-  - `proxy` (字符串)：Tor 代理 URL。
+- **telegram**：Telegram 机器人配置。
+  - `app_id` (int)：Telegram API 的应用 ID。
+  - `app_hash` (string)：Telegram API 的应用哈希。
+  - `bot_token` (string)：Telegram 机器人的令牌。
 
 - **auth**：认证配置列表。
-  - `base_url` (字符串)：OpenAI API 的基础 URL。
-  - `api_key` (字符串)：认证的 API 密钥。
+  - `base_url` (string)：API 的基本 URL。
+  - `api_key` (string)：认证的 API 密钥。
 
-- **completions**：生成补全的 AI 模型配置列表。
-  - `model` (字符串)：AI 模型的名称。
-  - `auth` (列表)：认证配置的引用。
-  - `tool` (布尔值)：指示模型是否使用工具。
+- **completions**：生成完成的 AI 模型配置列表。
+  - `model` (string)：AI 模型的名称。
+  - `auth` (list)：认证配置的引用。
+  - `tool` (boolean)：指示模型是否使用工具。
 
 - **images**：生成图像的 AI 模型配置列表。
-  - `model` (字符串)：AI 模型的名称。
-  - `auth` (列表)：认证配置的引用。
+  - `model` (string)：AI 模型的名称。
+  - `auth` (list)：认证配置的引用。
+
+- **tor**：Tor 代理配置。
+  - `proxy` (string)：Tor 代理 URL。
 
 ## 设置
 
-1. **安装依赖** 使用以下命令安装它们：
+1. **安装依赖**：使用以下命令安装依赖：
    ```sh
-   pip install -r .
+   pip install git+https://github.com/real-LiHua/tgbot
    ```
 
-2. **环境变量**：在项目根目录创建 `.env` 文件，并添加以下环境变量：
-   ```env
-   BOT_TOKEN=<你的 telegram 机器人令牌>
-   SECRET=<要让机器人保密的内容>
-   ```
-
-3. **运行机器人**：使用以下命令运行机器人：
+2. **运行机器人**：使用以下命令运行机器人：
    ```sh
    python -m tgbot
    ```

@@ -1,5 +1,3 @@
-# README
-
 ## Overview
 
 This project is a Telegram bot built using the Telethon library. The bot provides various functionalities such as AI responses, message handling, and administrative tools. The configuration is managed using a YAML file.
@@ -19,8 +17,10 @@ The configuration is managed using a YAML file (`config.yaml`). The configuratio
 ### Configuration Structure
 
 ```yaml
-tor:
-  proxy: socks5://127.0.0.1:9050
+telegram:
+  app_id: 611335
+  app_hash: "d524b414d21f4d37f08684c1df41ac9c"
+  bot_token: "********:********************************"
 
 auth: &auth
   - base_url: "https://api.siliconflow.cn/v1"
@@ -54,15 +54,20 @@ images:
     auth: *auth
   - model: "stabilityai/stable-diffusion-xl-base-1.0"
     auth: *auth
+
+tor:
+  proxy: socks5://127.0.0.1:9050
 ```
 
 ### Configuration Fields
 
-- **tor**: Configuration for the Tor proxy.
-  - `proxy` (string): The Tor proxy URL.
+- **telegram**: Telegram bot configuration.
+  - `app_id` (int): The app ID for the Telegram API.
+  - `app_hash` (string): The app hash for the Telegram API.
+  - `bot_token` (string): The bot token for the Telegram bot.
 
 - **auth**: A list of authentication configurations.
-  - `base_url` (string): The base URL for the OpenAI API.
+  - `base_url` (string): The base URL for the API.
   - `api_key` (string): The API key for authentication.
 
 - **completions**: A list of AI model configurations for generating completions.
@@ -74,20 +79,17 @@ images:
   - `model` (string): The name of the AI model.
   - `auth` (list): A reference to the authentication configurations.
 
+- **tor**: Configuration for the Tor proxy.
+  - `proxy` (string): The Tor proxy URL.
+
 ## Setup
 
 1. **Install Dependencies**: Use the following command to install them:
    ```sh
-   pip install -r .
+   pip install git+https://github.com/real-LiHua/tgbot
    ```
 
-2. **Environment Variables**: Create a `.env` file in the project root directory and add the following environment variables:
-   ```env
-   BOT_TOKEN=<your-telegram-bot-token>
-   SECRET=<your-secret>
-   ```
-
-3. **Run the Bot**: Use the following command to run the bot:
+2. **Run the Bot**: Use the following command to run the bot:
    ```sh
    python -m tgbot
    ```

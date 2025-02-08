@@ -10,7 +10,6 @@ dependencies = [
     "openai>=1.61.0",
     "pillow>=11.1.0",
     "portalocker>=3.0.0",
-    "python-dotenv>=1.0.1",
     "regex>=2024.11.6",
     "ruamel-yaml>=0.18.10",
     "singleton-decorator>=1.0.0",

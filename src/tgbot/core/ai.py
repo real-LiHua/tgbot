@@ -1,29 +1,18 @@
-import os
+import logging
 from json import loads
 from tempfile import mkstemp
 
 from aiohttp import ClientSession
-from dotenv import load_dotenv
 from openai import AsyncOpenAI
-from ruamel.yaml import YAML
 from telethon import TelegramClient, events, functions, types
 
+from .. import CONFIG
 from .data import ChatData
 from .tools import tools
 
-# Load environment variables from a .env file
-load_dotenv()
-
-config_path = "config.yaml"
-if not os.path.exists(config_path):
-    xdg_config_home = os.getenv("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
-    config_path = os.path.join(xdg_config_home, "tgbot", "config.yaml")
-
-with open(config_path) as file:
-    config = YAML().load(file)
-    tor = config.get("tor", dict())
-    tor_proxy = tor.get("proxy", "socks5://127.0.0.1:9050") if tor else None
-    tor_proxy_auth = tor.get("proxy_auth")
+tor = CONFIG.get("tor", dict())
+tor_proxy = tor.get("proxy", "socks5://127.0.0.1:9050") if tor else None
+tor_proxy_auth = tor.get("proxy_auth")
 
 
 async def invoke_model(name: str, **arguments):
@@ -38,12 +27,12 @@ async def invoke_model(name: str, **arguments):
         The response from the model.
     """
     use_tools = bool(arguments.get("tools"))
-    for lm in config.get(name, []):
+    for lm in CONFIG.get(name, []):
         if use_tools and not lm.get("tool"):
             continue
         for auth in lm.get("auth", []):
             if auth.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
-                # TODO: 白嫖 duckchat
+                # TODO: Implement DuckDuckGo DuckChat API integration
                 pass
             client: AsyncOpenAI = AsyncOpenAI(
                 base_url=auth.get("base_url"),
@@ -58,7 +47,7 @@ async def invoke_model(name: str, **arguments):
                 arguments["model"] = lm.get("model")
                 return await callback.create(**arguments)
             except Exception as e:
-                print(e)
+                logging.error(f"Error invoking model {name}: {e}")
 
 
 async def init(bot: TelegramClient, data: ChatData):
@@ -87,7 +76,7 @@ async def init(bot: TelegramClient, data: ChatData):
                 max_tokens=1000,
                 tools=tools,
             )
-            print(response)
+            logging.debug(response)
             if not response or not response.choices:
                 await event.reply("模型无响应")
                 return
@@ -113,7 +102,7 @@ async def init(bot: TelegramClient, data: ChatData):
                                 ),
                             )
                         case "UploadProfilePhotoRequest":
-                            # TODO:
+                            # FIXME: Handle different file types and ensure proper file handling
                             if isinstance(args.get("file"), int):
                                 _, name = mkstemp()
                                 file = used_functions[args["file"]][1]
@@ -129,7 +118,7 @@ async def init(bot: TelegramClient, data: ChatData):
                         case "SetBotInfoRequest":
                             res = await bot(functions.bots.SetBotInfoRequest(**args))
                         case "SearXNG":
-                            # TODO:
+                            # TODO: Implement SearXNG search functionality
                             res = None
                             args["format"] = "json"
                             async with ClientSession() as session:
@@ -158,7 +147,7 @@ async def init(bot: TelegramClient, data: ChatData):
                                     del args["entity"]
                                 else:
                                     entity = event.chat_id
-                                # TODO:
+                                # FIXME: Handle different file types and ensure proper file handling
                                 if isinstance(args.get("file"), int):
                                     _, name = mkstemp()
                                     file = used_functions[args["file"]][1]
@@ -176,4 +165,4 @@ async def init(bot: TelegramClient, data: ChatData):
                     if res:
                         await data.tool(event, tool.id, res)
                 except Exception as e:
-                    print(e)
+                    logging.error(e)

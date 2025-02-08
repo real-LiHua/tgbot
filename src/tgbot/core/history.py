@@ -1,3 +1,4 @@
+import logging
 from shutil import unpack_archive
 from tempfile import TemporaryFile
 
@@ -48,5 +49,5 @@ async def init(bot: TelegramClient, data: ChatData):
         """
         if update.__class__.__name__ in no_events:
             return
-        print(update)
+        logging.debug(update)
         await data.user(update)

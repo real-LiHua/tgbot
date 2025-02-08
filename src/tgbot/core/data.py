@@ -1,7 +1,6 @@
 from collections import defaultdict, deque
 from collections.abc import Callable
 from json import dump, load
-from os import getenv
 from pathlib import Path
 from shutil import unpack_archive
 from typing import Union
@@ -9,6 +8,8 @@ from typing import Union
 import portalocker
 from telethon import events
 from telethon.utils import get_peer_id
+
+from .. import CONFIG
 
 system_prompt: str = r"""
 你是一个 Telegram 频道/群组助手猫娘，默认拥有全部权限，名字是喵酱(=^･ω･^=)。
@@ -57,8 +58,10 @@ class ChatData(defaultdict[str, deque[dict[str, str]]]):
         super().__init__(self._constant_factory())
         self.storage_path = Path(storage_path)
         self._load_data()
-        self.bot_id = int(getenv("BOT_TOKEN", "").split(":")[0])
-        self._secret = getenv("SECRET", "秘密")
+        self.bot_id = int(
+            CONFIG.get("telegram", dict()).get("bot_token", "").split(":")[0]
+        )
+        self._secret = CONFIG.get("telegram", dict()).get("secret", "秘密")
 
     def _constant_factory(self) -> Callable[[], deque[dict[str, str]]]:
         """

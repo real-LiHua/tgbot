@@ -1,5 +1,7 @@
-tor:
-  proxy: socks5://127.0.0.1:9050
+telegram:
+  app_id: 611335
+  app_hash: "d524b414d21f4d37f08684c1df41ac9c"
+  bot_token: "********:********************************"
 
 auth: &auth
   - base_url: "https://api.siliconflow.cn/v1"
@@ -33,3 +35,6 @@ images:
     auth: *auth
   - model: "stabilityai/stable-diffusion-xl-base-1.0"
     auth: *auth
+
+tor:
+  proxy: socks5://127.0.0.1:9050

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from uuid import uuid4
 
 from telethon import Button, TelegramClient, events
@@ -41,8 +42,7 @@ class Queue:
         return ""
 
     async def delete(self, uuid):
-        print(uuid)
-        pass
+        logging.debug(uuid)
 
 
 queue = Queue()
@@ -51,7 +51,7 @@ queue = Queue()
 async def init(bot: TelegramClient, data: ChatData):
     @bot.on(events.CallbackQuery)
     async def callback(event: events.CallbackQuery.Event):
-        print(event)
+        logging.debug(event)
         uuid = event.data.decode()
         data = await queue.get(uuid)
         if not data:
@@ -64,7 +64,7 @@ async def init(bot: TelegramClient, data: ChatData):
             await asyncio.sleep(10)
             await queue.delete(uuid)
         except:
-            print(e)
+            logging.error(e)
 
     @bot.on(events.InlineQuery)
     async def inline(event: events.InlineQuery.Event):
