@@ -19,10 +19,13 @@ async def main():
     """
     Main function to initialize and run the Telegram bot.
     """
-    xdg_data_home = os.getenv("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
-    session_path = os.path.join(xdg_data_home, "tgbot", "bot")
+    if os.name == "nt":
+        base_dir = os.getenv("APPDATA", os.path.expanduser(r"~\AppData\Roaming"))
+    else:
+        base_dir = os.getenv("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
+    session_path = os.path.join(base_dir, "tgbot", "bot")
     os.makedirs(os.path.dirname(session_path), exist_ok=True)
-    data_path = os.path.join(xdg_data_home, "tgbot", "data.json")
+    data_path = os.path.join(base_dir, "tgbot", "data.json")
     data = ChatData(4096, data_path)
     logging.info("Initializing bot...")
     config = CONFIG.get("telegram", dict())
