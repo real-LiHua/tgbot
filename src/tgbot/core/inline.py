@@ -77,7 +77,10 @@ async def init(bot: TelegramClient, data: ChatData):
     @bot.on(events.InlineQuery)
     async def inline(event: events.InlineQuery.Event):
         builder = event.builder
-        uid = str(time_ns())
+        while True:
+            uid = str(time_ns())
+            if not queue.query(uid):
+                break
         await event.answer(
             [
                 builder.article(
