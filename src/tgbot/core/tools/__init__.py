@@ -1,10 +1,8 @@
 from openai import pydantic_function_tool
-from singleton_decorator import singleton
 
 tools = []
 
 
-# @singleton
 def register_tool(func=None, name=None, description=None):
     """
     Singleton function to add a tool configuration to the tools list and apply pydantic_function_tool decorator.
