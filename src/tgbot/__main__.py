@@ -25,14 +25,15 @@ async def main():
     data_path = os.path.join(xdg_data_home, "tgbot", "data.json")
     data = ChatData(4096, data_path)
     logging.info("Initializing bot...")
+    config = CONFIG.get("telegram", dict())
     bot: TelegramClient = TelegramClient(
         session_path,
-        CONFIG.get("app_id", 611335),
-        CONFIG.get("app_hash", "d524b414d21f4d37f08684c1df41ac9c"),
+        config.get("app_id", 611335),
+        config.get("app_hash", "d524b414d21f4d37f08684c1df41ac9c"),
         catch_up=True,
     )
     try:
-        await bot.start(bot_token=CONFIG.get("bot_token"))
+        await bot.start(bot_token=config.get("bot_token"))
         await history.init(bot, data)
         await core.init(bot, data)
         await plugins.init(bot)
