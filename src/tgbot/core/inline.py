@@ -46,11 +46,9 @@ class Queue:
         return ""
 
     async def delete(self, uid):
-        for key in map(int, self._dict.keys()):
-            if key <= uid:
-                del self._dict[key]
-                del self._result[key]
-                del self._status[key]
+        self._dict = {key: value for key, value in self._dict.items() if key > uid}
+        self._result = {key: value for key, value in self._result.items() if key > uid}
+        self._status = {key: value for key, value in self._status.items() if key > uid}
 
 
 queue = Queue()

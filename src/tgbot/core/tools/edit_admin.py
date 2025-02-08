@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from typing import Optional
 
-from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
 
-from . import Tool
+from . import register_tool
 
 
-@Tool
-@pydantic_function_tool
-class edit_admin(BaseModel):
+@register_tool(name="edit_admin")
+class EditAdmin(BaseModel):
     user: int = Field(..., description="用户ID")
     change_info: Optional[bool] = Field(
         None, description="Whether the user will be able to change info."

@@ -1,23 +1,20 @@
-from __future__ import annotations
-
 from typing import Optional
 
 from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
 
-from . import Tool
+from . import register_tool
 
 
-@Tool
-@pydantic_function_tool
-class send_message(BaseModel):
+@register_tool(name="send_message")
+class SendMessage(BaseModel):
     message: str = Field(
         ...,
         description="The message to be sent, or another message object to resend.The maximum length for a message is 35,000 bytes or 4,096 characters. Longer messages will not be sliced automatically, and you should slice them manually if the text to send is longer than said length.",
     )
     reply_to: Optional[int] = Field(
         None,
-        description="消息ID，可从Telegram消息链接获取, 例如：https://t.me/{chat_id}/{message_id}",
+        description="Message ID, can be obtained from the Telegram message link, for example: https://t.me/{chat_id}/{message_id}",
     )
     link_preview: Optional[bool] = Field(
         None, description="Should the link preview be shown?"

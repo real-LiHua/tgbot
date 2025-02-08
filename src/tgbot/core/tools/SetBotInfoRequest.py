@@ -1,15 +1,11 @@
-from __future__ import annotations
-
 from typing import Optional
 
-from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
 
-from . import Tool
+from . import register_tool
 
 
-@Tool
-@pydantic_function_tool
+@register_tool
 class SetBotInfoRequest(BaseModel):
     lang_code: str = Field(..., description="lang code")
     name: Optional[str] = Field(

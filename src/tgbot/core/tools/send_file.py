@@ -1,17 +1,16 @@
-from __future__ import annotations
-
 from typing import Optional
 
-from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
 
-from . import Tool
+from . import register_tool
 
 
-@Tool
-@pydantic_function_tool
-class send_file(BaseModel):
-    file: int = Field(..., description="已使用函数的列表下标，用于从中获取文件对象")
+@register_tool(name="send_file")
+class SendFile(BaseModel):
+    file: int = Field(
+        ...,
+        description="Index of the list of used functions, used to get the file object from it",
+    )
     caption: Optional[str] = Field(
         None,
         description="Optional caption for the sent media message. When sending an album, the caption may be a list of strings, which will be assigned to the files pairwise.",

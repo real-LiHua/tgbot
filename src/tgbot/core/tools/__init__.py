@@ -4,16 +4,29 @@ from singleton_decorator import singleton
 tools = []
 
 
-@singleton
-def Tool(x: dict = dict()):
+# @singleton
+def register_tool(func=None, name=None, description=None):
     """
-    Singleton function to add a tool configuration to the tools list.
+    Singleton function to add a tool configuration to the tools list and apply pydantic_function_tool decorator.
 
     Args:
-        x (dict): Tool configuration dictionary. Defaults to an empty dictionary.
+        func (callable, optional): The function to be registered as a tool. Defaults to None.
+        name (str, optional): Name for the pydantic function tool. Defaults to None.
+        description (str, optional): Description for the pydantic function tool. Defaults to None.
+
+    Returns:
+        callable: The original function if func is provided, otherwise the decorator.
     """
-    if x:
-        tools.append(x)
+
+    if func is not None:
+        tools.append(pydantic_function_tool(func))
+
+    def decorator(func):
+        tools.append(
+            pydantic_function_tool(model=func, name=name, description=description)
+        )
+
+    return decorator
 
 
 from . import SearXNG as _  # noqa

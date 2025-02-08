@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
 
-from . import Tool
+from . import register_tool
 
 
-@Tool
-@pydantic_function_tool
-class forward_messages(BaseModel):
+@register_tool(name="forward_messages")
+class ForwardMessages(BaseModel):
     entity: int = Field(
         ..., description="To which entity the message(s) will be forwarded."
     )

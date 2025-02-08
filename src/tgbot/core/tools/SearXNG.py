@@ -1,15 +1,11 @@
-from __future__ import annotations
-
 from typing import List, Optional
 
-from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
 
-from . import Tool
+from . import register_tool
 
 
-@Tool
-@pydantic_function_tool
+@register_tool
 class SearXNG(BaseModel):
     q: str = Field(
         ...,

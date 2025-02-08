@@ -3,8 +3,9 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from openai import pydantic_function_tool
 from pydantic import BaseModel, Field
+
+from . import register_tool
 
 
 class Reaction(Enum):
@@ -83,15 +84,11 @@ class Reaction(Enum):
     field__68 = "😡"
 
 
-from . import Tool
-
-
-@Tool
-@pydantic_function_tool
+@register_tool
 class SendReactionRequest(BaseModel):
     msg_id: int = Field(
         ...,
-        description="消息ID，可从Telegram消息链接获取, 例如：https://t.me/{chat_id}/{message_id}",
+        description="Message ID, can be obtained from the Telegram message link, for example: https://t.me/{chat_id}/{message_id}",
     )
     reaction: Optional[Reaction] = Field(
         None,
