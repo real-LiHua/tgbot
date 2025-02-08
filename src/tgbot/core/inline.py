@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from uuid import uuid4
+from time import time_ns
 
 from telethon import Button, TelegramClient, events
 
@@ -15,34 +15,42 @@ class Queue:
         self._dict = dict()
         self._result = dict()
 
-    async def set(self, uuid, data):
-        self._index.append(uuid)
-        self._dict[uuid] = data
+    async def set(self, uid, data):
+        self._index.append(uid)
+        self._dict[uid] = data
 
-    async def get(self, uuid):
-        if self._result.get(uuid):
-            return self._result[uuid]
-        if self._status.get(uuid) == "loading":
-            return
-        self._status[uuid] = "loading"
-        response = await invoke_model(
-            "completions",
-            messages=[
-                {"role": "system", "content": "使用中文回复"},
-                {"role": "user", "content": await self.query(uuid)},
-            ],
-        )
-        self._result[uuid] = response.choices[0].message.content
-        del self._status[uuid]
-        return self._result[uuid]
+    async def get(self, uid):
+        if self._result.get(uid):
+            return self._result[uid]
+        if self._status.get(uid):
+            return ""
+        self._status[uid] = True
+        for _ in range(3):
+            response = await invoke_model(
+                "completions",
+                messages=[
+                    {"role": "system", "content": "使用中文回复"},
+                    {"role": "user", "content": await self.query(uid)},
+                ],
+            )
+            if not response:
+                continue
+            self._result[uid] = response.choices[0].message.content
+            return self._result[uid]
+        else:
+            self._status[uid] = False
 
-    async def query(self, uuid):
-        if self._dict.get(uuid):
-            return self._dict[uuid].query
+    async def query(self, uid):
+        if self._dict.get(uid):
+            return self._dict[uid].query
         return ""
 
-    async def delete(self, uuid):
-        logging.debug(uuid)
+    async def delete(self, uid):
+        for key in map(int, self._dict.keys()):
+            if key <= uid:
+                del self._dict[key]
+                del self._result[key]
+                del self._status[key]
 
 
 queue = Queue()
@@ -52,31 +60,31 @@ async def init(bot: TelegramClient, data: ChatData):
     @bot.on(events.CallbackQuery)
     async def callback(event: events.CallbackQuery.Event):
         logging.debug(event)
-        uuid = event.data.decode()
-        data = await queue.get(uuid)
+        uid = event.data.decode()
+        data = await queue.get(uid)
         if not data:
             return
         try:
-            user = await queue.query(uuid)
+            user = await queue.query(uid)
             await event.edit(
                 f"user:\n{user}\n\n-------------------------\n\nassistant:\n{data}"
             )
             await asyncio.sleep(10)
-            await queue.delete(uuid)
-        except:
+            await queue.delete(uid)
+        except Exception as e:
             logging.error(e)
 
     @bot.on(events.InlineQuery)
     async def inline(event: events.InlineQuery.Event):
         builder = event.builder
-        uuid = uuid4().hex
+        uid = str(time_ns())
         await event.answer(
             [
                 builder.article(
                     "AI 助手",
                     text="AI 思考中...",
-                    buttons=Button.inline("刷新助手回复", data=uuid),
+                    buttons=Button.inline("刷新助手回复", data=uid),
                 ),
             ]
         )
-        await queue.set(uuid, event.query)
+        await queue.set(uid, event.query)
