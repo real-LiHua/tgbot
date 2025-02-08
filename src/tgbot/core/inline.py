@@ -12,12 +12,12 @@ class Queue:
     def __init__(self):
         self._index = []
         self._status = dict()
-        self._dict = dict()
+        self._data = dict()
         self._result = dict()
 
     async def set(self, uid, data):
         self._index.append(uid)
-        self._dict[uid] = data
+        self._data[uid] = data
 
     async def get(self, uid):
         if self._result.get(uid):
@@ -41,14 +41,20 @@ class Queue:
             self._status[uid] = False
 
     async def query(self, uid):
-        if self._dict.get(uid):
-            return self._dict[uid].query
+        if self._data.get(uid):
+            return self._data[uid].query
         return ""
 
     async def delete(self, uid):
-        self._dict = {key: value for key, value in self._dict.items() if key > uid}
-        self._result = {key: value for key, value in self._result.items() if key > uid}
-        self._status = {key: value for key, value in self._status.items() if key > uid}
+        for key in map(int, self._data.keys()):
+            if key < uid:
+                key = str(key)
+                if key in self._data:
+                    del self._data[key]
+                if key in self._result:
+                    del self._result[key]
+                if key in self._status:
+                    del self._status[key]
 
 
 queue = Queue()
