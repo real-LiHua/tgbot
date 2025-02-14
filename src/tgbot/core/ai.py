@@ -1,9 +1,10 @@
 import logging
 from json import loads
 from tempfile import mkstemp
-from httpx import AsyncClient
+
 from aiohttp import ClientSession
-from openai import AsyncOpenAI
+from httpx import AsyncClient
+from openai import AsyncAzureOpenAI, AsyncOpenAI
 from telethon import TelegramClient, events, functions, types
 
 from .. import CONFIG
@@ -34,11 +35,19 @@ async def invoke_model(name: str, **arguments):
             if auth.get("base_url", "").startswith("https://duckduckgo.com/duckchat"):
                 # TODO: Implement DuckDuckGo DuckChat API integration
                 pass
-            client: AsyncOpenAI = AsyncOpenAI(
-                base_url=auth.get("base_url"),
-                api_key=auth.get("api_key", ""),
-                http_client=auth.get("proxy") and AsyncClient(proxy=auth.get("proxy")),
-            )
+            if proxy := auth.get("proxy"):
+                http_client = AsyncClient(proxy=proxy)
+                del auth["proxy"]
+            else:
+                http_client = None
+            client: AsyncAzureOpenAI | AsyncOpenAI
+            if auth.get("azure_endpoint"):
+                client = AsyncAzureOpenAI(http_client=http_client, **auth)
+            else:
+                client = AsyncOpenAI(
+                    http_client=http_client,
+                    **auth,
+                )
             match name:
                 case "completions":
                     callback = client.chat.completions
