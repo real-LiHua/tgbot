@@ -1,7 +1,7 @@
 import logging
 from json import loads
 from tempfile import mkstemp
-
+from httpx import AsyncClient
 from aiohttp import ClientSession
 from openai import AsyncOpenAI
 from telethon import TelegramClient, events, functions, types
@@ -37,6 +37,7 @@ async def invoke_model(name: str, **arguments):
             client: AsyncOpenAI = AsyncOpenAI(
                 base_url=auth.get("base_url"),
                 api_key=auth.get("api_key", ""),
+                http_client=auth.get("proxy") and AsyncClient(proxy=auth.get("proxy")),
             )
             match name:
                 case "completions":

@@ -1,6 +1,6 @@
 from telethon import TelegramClient
 
-from . import ai, inline, ping, reset
+from . import ai, inline, ping, reset,sticker
 from .data import ChatData
 
 
@@ -16,3 +16,4 @@ async def init(bot: TelegramClient, data: ChatData):
     await ai.init(bot, data)
     await ping.init(bot, data)
     await reset.init(bot, data)
+    await sticker.init(bot)
