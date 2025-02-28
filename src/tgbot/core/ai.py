@@ -4,7 +4,7 @@ from tempfile import mkstemp
 
 from aiohttp import ClientSession
 from httpx import AsyncClient
-from openai import AsyncAzureOpenAI, AsyncOpenAI
+from openai import AsyncAssistantEventHandler, AsyncAzureOpenAI, AsyncOpenAI
 from telethon import TelegramClient, events, functions, types
 
 from .. import CONFIG

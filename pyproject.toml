@@ -8,6 +8,7 @@ dependencies = [
     "aiohttp>=3.11.11",
     "hachoir>=3.3.0",
     "openai>=1.61.0",
+    "opentele>=1.15.1",
     "pillow>=11.1.0",
     "portalocker>=3.0.0",
     "regex>=2024.11.6",
