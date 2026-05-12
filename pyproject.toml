@@ -1,0 +1,11 @@
+[project]
+name = "tgbot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "aiogram>=3.28.2",
+    "python-dotenv>=1.2.2",
+    "vercel-ai-sdk>=0.0.1.dev10",
+]

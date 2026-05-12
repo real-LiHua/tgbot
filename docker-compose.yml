@@ -1,0 +1,58 @@
+services:
+  bot:
+    build: .
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - AI_PROVIDER=${AI_PROVIDER:-openai}
+      - AI_MODEL_ID=${AI_MODEL_ID:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - AI_GATEWAY_API_KEY=${AI_GATEWAY_API_KEY:-}
+      - SANDBOX_URL=http://sandbox:8080
+    volumes:
+      - dynamic_handlers:/app/dynamic/handlers
+    restart: unless-stopped
+    stop_grace_period: 60s
+    depends_on:
+      sandbox:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+      update_config:
+        order: start-first
+        failure_action: rollback
+        parallelism: 1
+        delay: 5s
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+
+  sandbox:
+    build:
+      context: sandbox
+    cap_drop:
+      - ALL
+    cap_add:
+      - AUDIT_WRITE
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    restart: unless-stopped
+    stop_grace_period: 10s
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request,json; urllib.request.urlopen('http://localhost:8080/create', data=json.dumps({'timeout':5}).encode()).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: "256M"
+
+volumes:
+  dynamic_handlers:
