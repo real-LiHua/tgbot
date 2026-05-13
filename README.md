@@ -17,9 +17,12 @@ A modern Telegram bot built with [aiogram 3](https://docs.aiogram.dev), designed
 
 - **Async-first** — Built on asyncio with aiogram 3.x for non-blocking request handling
 - **AI integration** — OpenAI / Anthropic / AI Gateway providers via Vercel AI SDK
+- **AI chat** — Non-command messages are automatically routed to an AI Service for intelligent, tool-assisted responses
+- **Image generation & editing** — Generate and edit images via built-in AI tools
 - **Agent skills** — Search, view, and manage skills from [skills.sh](https://skills.sh)
 - **MCP support** — Connect to MCP servers (HTTP or stdio) to list and use tools
-- **Code sandbox** — Isolated code execution service via Docker (with security hardening)
+- **Hot reload** — Dynamically register AI-proposed tools and handlers without restarting the bot
+- **Code sandbox** — Isolated code execution via Docker (with security hardening) for hot-loaded tool safety
 - **Health check endpoint** — Exposes `/health` on port 8080 for container orchestration
 - **Graceful shutdown** — Handles SIGTERM/SIGINT signals for clean container termination
 - **Docker-ready** — Multi-stage Dockerfile with health checks and Compose deployment
@@ -89,19 +92,31 @@ The [docker-compose.yml](docker-compose.yml) includes production-ready settings:
 │   ├── config.py              # Environment configuration
 │   ├── sandbox_client.py      # Sandbox service HTTP client
 │   ├── ai/
-│   │   └── provider.py        # AI model factory (openai/anthropic/ai_gateway)
+│   │   ├── provider.py        # AI model factory (openai/anthropic/ai_gateway)
+│   │   └── tools.py           # AI tool definitions (34+ Telegram tools)
 │   ├── handlers/
 │   │   ├── start.py           # /start command
 │   │   ├── ping.py            # /ping command
 │   │   ├── models.py          # /models command (list AI models)
 │   │   ├── skill.py           # /skill command (skills.sh integration)
-│   │   └── mcps.py            # /mcps command (MCP server tools)
-│   └── keyboards/
-│       └── reply.py           # Keyboard builders
+│   │   ├── mcps.py            # /mcps command (MCP server tools)
+│   │   ├── chat.py            # (catch-all) AI chat handler via SSE
+│   │   └── callback.py        # Inline keyboard callback handler
+│   ├── keyboards/
+│   │   └── reply.py           # Keyboard builders
+│   ├── ai_service_client.py   # AI Service SSE client
+│   ├── hotloader.py           # Hot-reload system for dynamic tools/handlers
+│   └── sandbox_client.py      # Sandbox service HTTP client
 ├── sandbox/
 │   ├── Dockerfile             # Sandbox service Docker image
 │   ├── main.py                # FastAPI code execution sandbox
 │   └── requirements.txt
+├── ai-service/
+│   ├── Dockerfile             # AI Service Docker image
+│   ├── main.py                # FastAPI AI backend with SSE streaming
+│   └── requirements.txt
+├── dynamic/
+│   └── handlers/              # Hot-loaded handler persistence
 ├── Dockerfile                 # Bot multi-stage Docker build
 ├── docker-compose.yml         # Production Compose config
 ├── pyproject.toml             # Project metadata and dependencies
@@ -118,7 +133,10 @@ The [docker-compose.yml](docker-compose.yml) includes production-ready settings:
 | `OPENAI_API_KEY` | No | OpenAI API key |
 | `ANTHROPIC_API_KEY` | No | Anthropic API key |
 | `AI_GATEWAY_API_KEY` | No | AI Gateway API key |
+| `AI_SERVICE_URL` | No | AI Service URL (default: `http://localhost:8000`) |
+| `AI_SERVICE_API_KEY` | No | API key for AI Service authentication |
 | `SANDBOX_URL` | No | Sandbox service URL (default: `http://localhost:8080`) |
+| `SANDBOX_API_KEY` | No | API key for Sandbox authentication |
 
 ## Available commands
 
@@ -129,6 +147,8 @@ The [docker-compose.yml](docker-compose.yml) includes production-ready settings:
 | `/models` | List available AI models from the configured provider |
 | `/skill` | Agent skill management (find / info / add / list / init) |
 | `/mcps` | MCP server tool management (http / stdio) |
+
+Non-command messages are automatically handled by the **AI chat** system — routed via SSE to the AI Service for intelligent, tool-assisted conversation.
 
 ### /skill subcommands
 
@@ -163,6 +183,8 @@ Security features: `cap_drop: ALL`, `no-new-privileges`, read-only filesystem wi
 
 ## Extending
 
+### Static handlers
+
 Additional command handlers can be added in `src/handlers/`. Create a new router file and include it in `__main__.py`:
 
 ```python
@@ -171,9 +193,19 @@ from src.handlers.my_handler import router as my_router
 dp.include_router(my_router)
 ```
 
+### Dynamic hot-loading
+
+The bot supports **hot-loading** AI-proposed features without restarting. The AI agent can propose new tools (`@ai.tool`) or handlers (`Router`) via the `propose_new_feature` tool, which submits them for admin approval through an inline keyboard callback. Once approved, they are registered immediately:
+
+- **Tools** are compiled via `exec()` and executed inside the Docker sandbox for isolation
+- **Handlers** are written to `dynamic/handlers/{chat_id}/{name}.py`, imported dynamically, and registered with a `F.chat.id == chat_id` filter
+
+Hot-loaded handlers persist across bot restarts via `auto_discover()` on startup.
+
 ## Dependencies
 
 - [aiogram](https://docs.aiogram.dev) — Telegram Bot API framework
-- [aiohttp](https://docs.aiohttp.org) — HTTP server for health checks
-- [vercel-ai-sdk](https://github.com/vercel/ai-sdk-python) — Vercel AI SDK (for AI-powered features)
-- [vercel](https://github.com/vercel/vercel) — Vercel Python SDK (sandbox, blob, etc.)
+- [python-dotenv](https://github.com/theskumar/python-dotenv) — Environment variable loading
+- [vercel-ai-sdk](https://github.com/vercel/ai-sdk-python) — Vercel AI SDK (models, agents, tools, hooks)
+
+Additionally, [aiohttp](https://docs.aiohttp.org) and [httpx](https://www.python-httpx.org) are used runtime for the health check server and HTTP clients respectively, pulled in as transitive dependencies.

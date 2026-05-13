@@ -8,8 +8,8 @@ from aiogram import Bot
 from src.ai.provider import get_model
 from src.handlers.callback import add_pending, make_fid, approve_kb
 from src.hotloader import get_dynamic_tools
-from aiogram.types import BufferedInputFile, ChatPermissions, InputMediaAudio, InputMediaDocument, InputMediaPhoto, InputMediaVideo
-from aiogram.utils.formatting import Bold, Code, Pre, Text, as_list
+from aiogram.types import BufferedInputFile, ChatPermissions, InputMediaPhoto, InputMediaVideo
+from aiogram.utils.formatting import Bold, Pre, Text, as_list
 
 
 def make_telegram_tools(bot: Bot, chat_id: int | None = None) -> Sequence[ai.Tool[..., Any]]:
@@ -255,7 +255,7 @@ def make_telegram_tools(bot: Bot, chat_id: int | None = None) -> Sequence[ai.Too
     async def set_chat_description(chat_id: str, description: str) -> str:
         """Change the description of a chat or group. Admin permission required."""
         await bot.set_chat_description(chat_id=int(chat_id), description=description)
-        return f"description updated"
+        return "description updated"
 
     @ai.tool
     async def generate_image(chat_id: str, prompt: str, size: str = "1024x1024", n: int = 1) -> str:

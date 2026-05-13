@@ -8,7 +8,6 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
