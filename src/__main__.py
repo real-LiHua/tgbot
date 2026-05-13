@@ -5,6 +5,7 @@ from aiohttp import web
 
 from aiogram import Bot, Dispatcher
 
+from src.ai.tool_server import create_tool_routes
 from src.config import BOT_TOKEN
 from src.hotloader import auto_discover, init as init_hotloader
 from src.handlers.callback import router as callback_router
@@ -30,9 +31,11 @@ async def main() -> None:
 
     app = web.Application()
     app.router.add_get("/health", health_check)
+    app.add_routes(create_tool_routes(bot))
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 8080)
+    await site.start()
 
     loop = asyncio.get_running_loop()
     stop_event = asyncio.Event()
@@ -41,7 +44,6 @@ async def main() -> None:
         loop.add_signal_handler(sig, stop_event.set)
 
     async with asyncio.TaskGroup() as tg:
-        tg.create_task(site.start())
         tg.create_task(dp.start_polling(bot))
 
         await stop_event.wait()

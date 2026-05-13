@@ -8,7 +8,7 @@
 
 </div>
 
-A modern Telegram bot built with [aiogram 3](https://docs.aiogram.dev), designed for production deployments with Docker, graceful shutdown, health checks, and zero-downtime rolling updates.
+A modern Telegram bot built with [aiogram 3](https://docs.aiogram.dev), powered by [Docker Agent](https://docker.github.io/docker-agent/) for AI inference and tool orchestration. Designed for production deployments with Docker, graceful shutdown, health checks, and zero-downtime rolling updates.
 
 > [!NOTE]
 > This project uses [uv](https://github.com/astral-sh/uv) for fast Python package management and requires Python 3.14+.
@@ -16,8 +16,8 @@ A modern Telegram bot built with [aiogram 3](https://docs.aiogram.dev), designed
 ## Features
 
 - **Async-first** — Built on asyncio with aiogram 3.x for non-blocking request handling
-- **AI integration** — OpenAI / Anthropic / AI Gateway providers via Vercel AI SDK
-- **AI chat** — Non-command messages are automatically routed to an AI Service for intelligent, tool-assisted responses
+- **AI integration** — OpenAI / Anthropic / AI Gateway providers via Docker Agent
+- **AI chat** — Non-command messages are routed to Docker Agent for intelligent, tool-assisted responses
 - **Image generation & editing** — Generate and edit images via built-in AI tools
 - **Agent skills** — Search, view, and manage skills from [skills.sh](https://skills.sh)
 - **MCP support** — Connect to MCP servers (HTTP or stdio) to list and use tools
@@ -28,6 +28,27 @@ A modern Telegram bot built with [aiogram 3](https://docs.aiogram.dev), designed
 - **Docker-ready** — Multi-stage Dockerfile with health checks and Compose deployment
 - **Zero-downtime deployments** — Docker Compose config with rolling updates (start-first), parallelism, and rollback
 
+## Architecture
+
+```
+┌──────────────────┐   SSE stream       ┌──────────────────────────┐
+│  Bot (thin       │ ◄──────────────►   │  Docker Agent API Server │
+│  client)         │  POST /api/sessions│                          │
+│                  │  /:id/agent/agent  │  - AI model inference    │
+│  - Telegram I/O  │                    │  - Agent loop            │
+│  - Formatting    │                    │  - Session persistence   │
+│  - Inline        │                    │  - Tool orchestration    │
+│    keyboards     │                    └──────────┬───────────────┘
+│  - Hot reload    │                               │ HTTP (tool calls)
+│  - Sandbox       │                               ▼
+│  - Tool HTTP API │                  ┌──────────────────────┐
+│    (/api/tools/) │◄─────────────────│  Bot Tool HTTP Server  │
+└──────────────────┘                  │  POST /api/tools/{name}│
+                                      └──────────────────────┘
+```
+
+Docker Agent manages AI sessions and tool orchestration. When it needs to call a Telegram API method, it uses its OpenAPI tool to POST to the Bot's tool server, which executes the actual Telegram Bot API call.
+
 ## Getting started
 
 ### Prerequisites
@@ -35,6 +56,7 @@ A modern Telegram bot built with [aiogram 3](https://docs.aiogram.dev), designed
 - Python 3.14+
 - [uv](https://github.com/astral-sh/uv) installed
 - A Telegram bot token from [@BotFather](https://t.me/botfather)
+- [Docker Agent](https://docker.github.io/docker-agent/) binary (for local development without Docker)
 
 ### Installation
 
@@ -54,6 +76,10 @@ cp .env.example .env
 ### Run the bot
 
 ```bash
+# Start Docker Agent first
+docker-agent serve api agent.yaml &
+
+# Then start the bot
 uv run python -m src
 ```
 
@@ -71,8 +97,6 @@ docker compose up --build -d
 docker compose up --build -d sandbox
 ```
 
-The Dockerfile uses a [multi-stage build](Dockerfile) with `uv sync --frozen --no-dev` for minimal image size. The container exposes a health check endpoint at `http://localhost:8080/health`.
-
 ### Deployment configuration
 
 The [docker-compose.yml](docker-compose.yml) includes production-ready settings:
@@ -88,12 +112,13 @@ The [docker-compose.yml](docker-compose.yml) includes production-ready settings:
 .
 ├── src/
 │   ├── __init__.py
-│   ├── __main__.py            # Entry point with bot polling and health check
+│   ├── __main__.py            # Entry point: HTTP server + bot polling
 │   ├── config.py              # Environment configuration
 │   ├── sandbox_client.py      # Sandbox service HTTP client
 │   ├── ai/
-│   │   ├── provider.py        # AI model factory (openai/anthropic/ai_gateway)
-│   │   └── tools.py           # AI tool definitions (34+ Telegram tools)
+│   │   ├── provider.py        # AI model factory (for image generation tools)
+│   │   ├── tools.py           # AI tool definitions (34+ Telegram tools)
+│   │   └── tool_server.py     # OpenAPI spec + tool execution HTTP endpoints
 │   ├── handlers/
 │   │   ├── start.py           # /start command
 │   │   ├── ping.py            # /ping command
@@ -104,17 +129,15 @@ The [docker-compose.yml](docker-compose.yml) includes production-ready settings:
 │   │   └── callback.py        # Inline keyboard callback handler
 │   ├── keyboards/
 │   │   └── reply.py           # Keyboard builders
-│   ├── ai_service_client.py   # AI Service SSE client
+│   ├── ai_service_client.py   # Docker Agent SSE client
 │   ├── hotloader.py           # Hot-reload system for dynamic tools/handlers
 │   └── sandbox_client.py      # Sandbox service HTTP client
 ├── sandbox/
 │   ├── Dockerfile             # Sandbox service Docker image
 │   ├── main.py                # FastAPI code execution sandbox
 │   └── requirements.txt
-├── ai-service/
-│   ├── Dockerfile             # AI Service Docker image
-│   ├── main.py                # FastAPI AI backend with SSE streaming
-│   └── requirements.txt
+├── agent.yaml                 # Docker Agent configuration
+├── docker-agent.Dockerfile    # Docker Agent Docker image
 ├── dynamic/
 │   └── handlers/              # Hot-loaded handler persistence
 ├── Dockerfile                 # Bot multi-stage Docker build
@@ -128,13 +151,12 @@ The [docker-compose.yml](docker-compose.yml) includes production-ready settings:
 | Variable | Required | Description |
 |---|---|---|
 | `BOT_TOKEN` | Yes | Telegram bot token from @BotFather |
-| `AI_PROVIDER` | No | AI provider: `openai`, `anthropic`, or `ai_gateway` (default: `openai`) |
-| `AI_MODEL_ID` | No | Model ID override (default varies by provider) |
-| `OPENAI_API_KEY` | No | OpenAI API key |
+| `DOCKER_AGENT_URL` | No | Docker Agent URL (default: `http://localhost:8080`) |
+| `AI_PROVIDER` | No | AI provider for image generation: `openai`, `anthropic`, or `ai_gateway` (default: `openai`) |
+| `AI_MODEL_ID` | No | Model ID override for image generation (default varies by provider) |
+| `OPENAI_API_KEY` | No | OpenAI API key (for both Docker Agent and image generation) |
 | `ANTHROPIC_API_KEY` | No | Anthropic API key |
 | `AI_GATEWAY_API_KEY` | No | AI Gateway API key |
-| `AI_SERVICE_URL` | No | AI Service URL (default: `http://localhost:8000`) |
-| `AI_SERVICE_API_KEY` | No | API key for AI Service authentication |
 | `SANDBOX_URL` | No | Sandbox service URL (default: `http://localhost:8080`) |
 | `SANDBOX_API_KEY` | No | API key for Sandbox authentication |
 
@@ -144,11 +166,11 @@ The [docker-compose.yml](docker-compose.yml) includes production-ready settings:
 |---|---|
 | `/start` | Welcome message |
 | `/ping` | Health check — responds with "pong" |
-| `/models` | List available AI models from the configured provider |
+| `/models` | List available AI models from Docker Agent |
 | `/skill` | Agent skill management (find / info / add / list / init) |
 | `/mcps` | MCP server tool management (http / stdio) |
 
-Non-command messages are automatically handled by the **AI chat** system — routed via SSE to the AI Service for intelligent, tool-assisted conversation.
+Non-command messages are automatically handled by the **AI chat** system — routed via SSE to Docker Agent for intelligent, tool-assisted conversation.
 
 ### /skill subcommands
 
@@ -206,6 +228,6 @@ Hot-loaded handlers persist across bot restarts via `auto_discover()` on startup
 
 - [aiogram](https://docs.aiogram.dev) — Telegram Bot API framework
 - [python-dotenv](https://github.com/theskumar/python-dotenv) — Environment variable loading
-- [vercel-ai-sdk](https://github.com/vercel/ai-sdk-python) — Vercel AI SDK (models, agents, tools, hooks)
-
-Additionally, [aiohttp](https://docs.aiohttp.org) and [httpx](https://www.python-httpx.org) are used runtime for the health check server and HTTP clients respectively, pulled in as transitive dependencies.
+- [aiohttp](https://docs.aiohttp.org) — HTTP server (tool API, health check)
+- [httpx](https://www.python-httpx.org) — HTTP client (Docker Agent sessions, SSE streaming)
+- [vercel-ai-sdk](https://github.com/vercel/ai-sdk-python) — Tool definitions, hooks, and image generation (bot-side)

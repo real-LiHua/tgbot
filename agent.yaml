@@ -1,0 +1,23 @@
+models:
+  primary:
+    provider: openai
+    model: gpt-4o-mini
+
+agents:
+  root:
+    model: primary
+    description: Telegram group AI assistant
+    instruction: |
+      你是一个 Telegram 群组 AI 助手。使用可用工具与群组交互：发送消息、管理成员、发送媒体等。
+
+      所有工具参数中带 body_ 前缀的是请求体参数（例如 body_chat_id），直接在调用时传递即可。
+
+      请用中文回答，保持简洁有用。
+    add_date: true
+    max_iterations: 10
+    toolsets:
+      - type: think
+      - type: openapi
+        url: "http://bot:8080/api/openapi.json"
+        headers:
+          X-Api-Key: "${env.BOT_TOOL_API_KEY}"
