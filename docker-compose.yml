@@ -34,8 +34,12 @@ services:
           memory: "512M"
 
   bot:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
+      - APP_ID=${APP_ID}
+      - API_HASH=${API_HASH}
       - BOT_TOKEN=${BOT_TOKEN}
       - DOCKER_AGENT_URL=http://docker-agent:8080
       - BOT_TOOL_API_KEY=${BOT_TOOL_API_KEY:-}
@@ -46,20 +50,19 @@ services:
       - AI_GATEWAY_API_KEY=${AI_GATEWAY_API_KEY:-}
       - SANDBOX_URL=http://sandbox:8080
       - SANDBOX_API_KEY=${SANDBOX_API_KEY:-}
-    volumes:
-      - dynamic_handlers:/app/dynamic/handlers
+      - LISTEN_ADDR=0.0.0.0:8080
     networks:
       - external
       - internal
     restart: unless-stopped
-    stop_grace_period: 60s
+    stop_grace_period: 30s
     depends_on:
       docker-agent:
         condition: service_healthy
       sandbox:
         condition: service_healthy
     deploy:
-      replicas: 2
+      replicas: 1
       update_config:
         order: start-first
         failure_action: rollback

@@ -17,7 +17,7 @@ agents:
     max_iterations: 10
     toolsets:
       - type: think
-      - type: openapi
-        url: "http://bot:8080/api/openapi.json"
+      - type: mcp
+        url: "http://bot:8080/mcp"
         headers:
           X-Api-Key: "${env.BOT_TOOL_API_KEY}"

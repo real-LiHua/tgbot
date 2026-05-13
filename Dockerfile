@@ -1,15 +1,17 @@
-FROM python:3.14-slim
-
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
+COPY . .
+RUN CGO_ENABLED=0 go build -o /bot ./cmd/bot/
 
-COPY src/ src/
+FROM alpine:3.21
 
-HEALTHCHECK --start-period=15s --interval=15s --timeout=5s --retries=2 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')" || exit 1
+RUN apk add --no-cache ca-certificates tzdata
+COPY --from=builder /bot /bot
 
-CMD ["uv", "run", "python", "-m", "src"]
+EXPOSE 8080
+
+ENTRYPOINT ["/bot"]
