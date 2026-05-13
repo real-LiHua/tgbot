@@ -1,19 +1,61 @@
+networks:
+  internal:
+    driver: bridge
+    internal: true
+  external:
+    driver: bridge
+
 services:
+  ai:
+    build:
+      context: ai-service
+    environment:
+      - AI_PROVIDER=${AI_PROVIDER:-openai}
+      - AI_MODEL_ID=${AI_MODEL_ID:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - AI_GATEWAY_API_KEY=${AI_GATEWAY_API_KEY:-}
+      - AI_SERVICE_API_KEY=${AI_SERVICE_API_KEY:-}
+    networks:
+      - external
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: "512M"
+
   bot:
     build: .
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
+      - AI_SERVICE_URL=http://ai:8000
+      - AI_SERVICE_API_KEY=${AI_SERVICE_API_KEY:-}
       - AI_PROVIDER=${AI_PROVIDER:-openai}
       - AI_MODEL_ID=${AI_MODEL_ID:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - AI_GATEWAY_API_KEY=${AI_GATEWAY_API_KEY:-}
       - SANDBOX_URL=http://sandbox:8080
+      - SANDBOX_API_KEY=${SANDBOX_API_KEY:-}
     volumes:
       - dynamic_handlers:/app/dynamic/handlers
+    networks:
+      - external
+      - internal
     restart: unless-stopped
     stop_grace_period: 60s
     depends_on:
+      ai:
+        condition: service_healthy
       sandbox:
         condition: service_healthy
     deploy:
@@ -30,6 +72,8 @@ services:
   sandbox:
     build:
       context: sandbox
+    environment:
+      - SANDBOX_API_KEY=${SANDBOX_API_KEY:-}
     cap_drop:
       - ALL
     cap_add:
@@ -39,10 +83,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=64m
+    networks:
+      - internal
     restart: unless-stopped
     stop_grace_period: 10s
     healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request,json; urllib.request.urlopen('http://localhost:8080/create', data=json.dumps({'timeout':5}).encode()).read()"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
       interval: 10s
       timeout: 5s
       retries: 3

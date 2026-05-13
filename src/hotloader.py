@@ -5,6 +5,7 @@ import keyword
 import logging
 import re
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,23 @@ from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import and_f
 
 from src.sandbox_client import SandboxClient
+
+_RATE_LIMIT_WINDOW = 10.0
+_RATE_LIMIT_MAX = 3
+_last_operations: dict[int, list[float]] = {}
+
+
+def _check_rate_limit(chat_id: int) -> None:
+    now = time.monotonic()
+    cutoff = now - _RATE_LIMIT_WINDOW
+    ops = _last_operations.setdefault(chat_id, [])
+    ops[:] = [t for t in ops if t > cutoff]
+    if len(ops) >= _RATE_LIMIT_MAX:
+        raise ValueError(
+            f"rate limit exceeded: max {_RATE_LIMIT_MAX} operations "
+            f"per {_RATE_LIMIT_WINDOW:.0f}s per chat"
+        )
+    ops.append(now)
 
 _bot: Bot | None = None
 _dp: Dispatcher | None = None
@@ -41,6 +59,82 @@ async def _ensure_sandbox(chat_id: int) -> SandboxClient:
 
 def _is_valid_name(name: str) -> bool:
     return name.isidentifier() and not keyword.iskeyword(name)
+
+
+_DANGEROUS_CALLS: set[str] = {
+    "os.system", "os.popen", "os.exec", "os.execl", "os.execle", "os.execlp", "os.execlpe",
+    "os.execv", "os.execve", "os.execvp", "os.execvpe", "os.spawn", "os.startfile",
+    "subprocess.run", "subprocess.Popen", "subprocess.call", "subprocess.check_call",
+    "subprocess.check_output", "subprocess.getoutput", "subprocess.getstatusoutput",
+    "eval", "exec", "compile", "__import__",
+    "open", "shutil.rmtree", "shutil.move", "os.remove", "os.unlink", "os.rmdir",
+    "os.chmod", "os.chown", "os.setuid",
+    "ctypes.CDLL", "ctypes.WinDLL", "ctypes.PyDLL",
+    "socket.socket", "socket.create_connection",
+    "requests.get", "requests.post", "requests.put", "requests.delete",
+    "urllib.request.urlopen", "urllib.request.urlretrieve",
+    "inspect.currentframe", "inspect.stack",
+}
+
+_BUILTIN_DANGEROUS = {"eval", "exec", "compile", "open", "__import__", "getattr", "setattr", "delattr", "vars"}
+
+_DANGEROUS_ATTRS: set[str] = {
+    "__builtins__", "__class__", "__subclasses__", "__bases__", "__mro__",
+    "__globals__", "__code__", "__closure__", "__func__",
+}
+
+_DANGEROUS_NAMES: set[str] = {
+    "__builtins__",
+}
+
+
+def _validate_code_safety(code: str) -> None:
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as e:
+        raise ValueError(f"invalid Python syntax: {e}")
+
+    for node in ast.walk(tree):
+        match node:
+            case ast.Call():
+                func = node.func
+                if isinstance(func, ast.Attribute):
+                    full = f"{ast.unparse(func.value)}.{func.attr}"
+                    if full in _DANGEROUS_CALLS:
+                        raise ValueError(
+                            f"dangerous function call '{full}' is not allowed "
+                            f"in hotloaded code"
+                        )
+                elif isinstance(func, ast.Name) and func.id in _BUILTIN_DANGEROUS:
+                    raise ValueError(
+                        f"dangerous builtin '{func.id}()' is not allowed "
+                        f"in hotloaded code"
+                    )
+            case ast.Name():
+                if node.id in _DANGEROUS_NAMES:
+                    raise ValueError(
+                        f"access to '{node.id}' is not allowed "
+                        f"in hotloaded code"
+                    )
+            case ast.Attribute():
+                if node.attr in _DANGEROUS_ATTRS:
+                    raise ValueError(
+                        f"access to '{node.attr}' is not allowed "
+                        f"in hotloaded code"
+                    )
+            case ast.Import():
+                for alias in node.names:
+                    if alias.name in ("socket", "ctypes", "subprocess"):
+                        raise ValueError(
+                            f"dangerous module '{alias.name}' is not allowed "
+                            f"in hotloaded code"
+                        )
+            case ast.ImportFrom():
+                if node.module in ("socket", "ctypes", "subprocess"):
+                    raise ValueError(
+                        f"dangerous module '{node.module}' is not allowed "
+                        f"in hotloaded code"
+                    )
 
 
 def _parse_func_sig(code: str) -> tuple[str, str, dict[str, Any]]:
@@ -72,6 +166,8 @@ def _parse_func_sig(code: str) -> tuple[str, str, dict[str, Any]]:
 
 
 async def register_tool(chat_id: int, code: str) -> str:
+    _check_rate_limit(chat_id)
+    _validate_code_safety(code)
     tool_name, description, param_schema = _parse_func_sig(code)
     if not _is_valid_name(tool_name):
         raise ValueError(f"invalid tool name: {tool_name}")
@@ -108,7 +204,7 @@ async def _sandbox_run(chat_id: int, tool_name: str, code: str, kwargs: dict[str
         env={"_TN": tool_name, "_KW": json.dumps(kwargs, default=str)},
     )
     if resp["exit_code"] != 0:
-        return f"sandbox error: {resp['stderr'].strip()}"
+        return "sandbox execution error"
     return resp["stdout"].strip()
 
 
@@ -126,6 +222,8 @@ def _register_chat_router(router: Router, chat_id: int) -> Router:
 
 
 def register_handler(chat_id: int, code: str) -> str:
+    _check_rate_limit(chat_id)
+    _validate_code_safety(code)
     match = re.search(r'router\s*=\s*Router\(name\s*=\s*["\'](\w+)["\']', code)
     name = match.group(1) if match else f"handler_{len(_dynamic_handlers)}"
 
@@ -167,6 +265,8 @@ def auto_discover() -> None:
             if name in _dynamic_handlers.get(chat_id, {}):
                 continue
             try:
+                code = path.read_text("utf-8")
+                _validate_code_safety(code)
                 mod_id = f"_dyn_{chat_id}_{name}"
                 spec = importlib.util.spec_from_file_location(mod_id, str(path))
                 if spec is None or spec.loader is None:

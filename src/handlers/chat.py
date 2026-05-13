@@ -1,8 +1,7 @@
-import ai
 from aiogram import Router, types
 
-from src.ai.provider import get_model
 from src.ai.tools import make_telegram_tools
+from src.ai_service_client import chat_stream
 
 router = Router(name="chat")
 
@@ -17,24 +16,22 @@ async def handle_message(message: types.Message) -> None:
         return
 
     sent = await message.answer("...")
-    model = get_model()
     bot = message.bot
     tools = make_telegram_tools(bot, chat_id=message.chat.id)
-    agent = ai.agent(tools=tools)
 
-    msgs = [
-        ai.system_message(
+    messages = [
+        {"role": "system", "content": (
             "你是一个 Telegram 群组 AI 助手。"
             "使用工具与群组交互：发送消息、管理成员、发送媒体等。"
             "请用中文回答，保持简洁有用。"
-        ),
-        ai.user_message(text),
+        )},
+        {"role": "user", "content": text},
     ]
 
     full = ""
-    async for msg in agent.run(model, msgs):
-        if msg.text_delta:
-            full += msg.text_delta
+    async for event in chat_stream(messages, tools, chat_id=message.chat.id):
+        if event["type"] == "delta":
+            full += event["text"]
             if len(full) < 4000:
                 try:
                     await sent.edit_text(full)

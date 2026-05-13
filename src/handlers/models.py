@@ -1,7 +1,7 @@
 from aiogram import Router, types
 from aiogram.filters import Command
 
-from src.ai.provider import get_model
+from src.ai_service_client import list_models
 
 router = Router(name="models")
 
@@ -10,11 +10,10 @@ router = Router(name="models")
 async def handle_models(message: types.Message) -> None:
     sent = await message.answer("正在获取可用模型列表...")
     try:
-        model = get_model()
-        models = await model.provider.list()
+        models = await list_models()
     except Exception:
         await sent.edit_text(
-            "获取模型列表失败，请检查 API 密钥和网络连接是否正常。"
+            "获取模型列表失败，请检查 AI 服务连接是否正常。"
         )
         return
 

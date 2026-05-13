@@ -1,4 +1,5 @@
 import hashlib
+import os
 from typing import Any
 
 from aiogram import Router, types
@@ -25,7 +26,7 @@ def pop_pending(fid: str) -> dict[str, Any] | None:
 
 
 def make_fid(name: str) -> str:
-    return hashlib.md5(name.encode()).hexdigest()[:8]
+    return hashlib.md5(os.urandom(16)).hexdigest()[:8]
 
 
 def approve_kb(fid: str) -> InlineKeyboardMarkup:

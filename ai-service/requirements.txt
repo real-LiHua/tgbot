@@ -1,0 +1,4 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+vercel-ai-sdk>=0.0.1.dev10
+python-dotenv>=1.2.2

@@ -3,6 +3,13 @@ import os
 import httpx
 
 SANDBOX_URL = os.environ.get("SANDBOX_URL", "http://localhost:8080")
+_API_KEY = os.environ.get("SANDBOX_API_KEY", "")
+
+
+def _headers() -> dict[str, str]:
+    if _API_KEY:
+        return {"X-Api-Key": _API_KEY}
+    return {}
 
 
 class SandboxClient:
@@ -43,6 +50,7 @@ class SandboxClient:
                 "cwd": cwd,
                 "env": env or {},
             },
+            headers=_headers(),
             timeout=120,
         )
         resp.raise_for_status()
@@ -52,6 +60,7 @@ class SandboxClient:
         resp = await self._http.post(
             self._read_url,
             json={"sandbox_id": self.sandbox_id, "path": path},
+            headers=_headers(),
         )
         resp.raise_for_status()
         data = resp.json()
@@ -61,12 +70,13 @@ class SandboxClient:
         resp = await self._http.post(
             self._write_url,
             json={"sandbox_id": self.sandbox_id, "files": files},
+            headers=_headers(),
         )
         resp.raise_for_status()
 
     async def stop(self) -> None:
         try:
-            await self._http.post(self._stop_url)
+            await self._http.post(self._stop_url, headers=_headers())
         except httpx.HTTPError:
             pass
 
@@ -76,10 +86,15 @@ class SandboxClient:
     @staticmethod
     async def create(*, timeout: int = 60) -> "SandboxClient":
         http = httpx.AsyncClient()
-        resp = await http.post(
-            f"{SANDBOX_URL}/create",
-            json={"timeout": timeout},
-        )
-        resp.raise_for_status()
-        sandbox_id = resp.json()["sandbox_id"]
-        return SandboxClient(sandbox_id, http)
+        try:
+            resp = await http.post(
+                f"{SANDBOX_URL}/create",
+                json={"timeout": timeout},
+                headers=_headers(),
+            )
+            resp.raise_for_status()
+            sandbox_id = resp.json()["sandbox_id"]
+            return SandboxClient(sandbox_id, http)
+        except Exception:
+            await http.aclose()
+            raise

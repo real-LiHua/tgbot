@@ -5,7 +5,7 @@ from aiohttp import web
 
 from aiogram import Bot, Dispatcher
 
-from src.config import BOT_TOKEN
+from src.config import AI_SERVICE_URL, BOT_TOKEN
 from src.hotloader import auto_discover, init as init_hotloader
 from src.handlers.callback import router as callback_router
 from src.handlers.chat import router as chat_router

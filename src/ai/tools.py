@@ -266,8 +266,8 @@ def make_telegram_tools(bot: Bot, chat_id: int | None = None) -> Sequence[ai.Too
                 [ai.user_message(prompt)],
                 ai.ImageParams(n=n, size=size),
             )
-        except Exception as e:
-            return f"generation failed: {e}"
+        except Exception:
+            return "generation failed"
 
         ids = []
         for part in msg.parts:
@@ -356,8 +356,8 @@ def make_telegram_tools(bot: Bot, chat_id: int | None = None) -> Sequence[ai.Too
                 [ai.user_message(prompt, ai.file_part(raw, media_type="image/png"))],
                 ai.ImageParams(n=1),
             )
-        except Exception as e:
-            return f"edit failed: {e}"
+        except Exception:
+            return "edit failed"
 
         for part in result.parts:
             if isinstance(part, ai.FilePart):

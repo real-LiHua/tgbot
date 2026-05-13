@@ -1,4 +1,5 @@
 import asyncio
+import hmac
 import os
 import resource
 import shutil
@@ -9,10 +10,20 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Sandbox")
+
+API_KEY = os.environ.get("SANDBOX_API_KEY", "")
+
+
+def _verify_api_key(request: Request) -> None:
+    if not API_KEY:
+        return
+    key = request.headers.get("X-Api-Key", "")
+    if not hmac.compare_digest(key, API_KEY):
+        raise HTTPException(403, "invalid api key")
 
 SANDBOX_TIMEOUT = int(os.environ.get("SANDBOX_TIMEOUT", "60"))
 SANDBOX_MAX_OUTPUT = 1_000_000
@@ -92,7 +103,9 @@ def _set_limits(timeout: int) -> None:
 
 def _safe_resolve(base: Path, user_path: str) -> Path:
     resolved = (base / user_path).resolve()
-    if not str(resolved).startswith(str(base.resolve())):
+    base_str = str(base.resolve())
+    resolved_str = str(resolved)
+    if resolved_str != base_str and not resolved_str.startswith(base_str + "/"):
         raise HTTPException(403, f"path escapes sandbox: {user_path}")
     return resolved
 
@@ -120,7 +133,8 @@ async def _cleanup_loop() -> None:
 
 
 @app.post("/create", response_model=CreateResponse)
-async def create_sandbox(req: CreateRequest) -> CreateResponse:
+async def create_sandbox(req: CreateRequest, request: Request) -> CreateResponse:
+    _verify_api_key(request)
     if len(_instances) >= MAX_INSTANCES:
         raise HTTPException(503, "max instances reached, try again later")
     sandbox_id = uuid.uuid4().hex[:16]
@@ -135,7 +149,8 @@ async def create_sandbox(req: CreateRequest) -> CreateResponse:
 
 
 @app.post("/run", response_model=RunResponse)
-async def run_command(req: RunRequest) -> RunResponse:
+async def run_command(req: RunRequest, request: Request) -> RunResponse:
+    _verify_api_key(request)
     sb = _get_sandbox(req.sandbox_id)
 
     runtime = RUNTIMES.get(req.cmd)
@@ -176,7 +191,8 @@ async def run_command(req: RunRequest) -> RunResponse:
 
 
 @app.post("/read", response_model=ReadResponse)
-async def read_file(req: ReadRequest) -> ReadResponse:
+async def read_file(req: ReadRequest, request: Request) -> ReadResponse:
+    _verify_api_key(request)
     sb = _get_sandbox(req.sandbox_id)
     path = _safe_resolve(sb.dir, req.path)
     if not path.exists() or not path.is_file():
@@ -185,7 +201,8 @@ async def read_file(req: ReadRequest) -> ReadResponse:
 
 
 @app.post("/write")
-async def write_files(req: WriteRequest) -> dict[str, bool]:
+async def write_files(req: WriteRequest, request: Request) -> dict[str, bool]:
+    _verify_api_key(request)
     sb = _get_sandbox(req.sandbox_id)
     if len(req.files) > MAX_FILES_PER_WRITE:
         raise HTTPException(413, f"max {MAX_FILES_PER_WRITE} files per write request")
@@ -196,8 +213,14 @@ async def write_files(req: WriteRequest) -> dict[str, bool]:
     return {"ok": True}
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.post("/stop/{sandbox_id}")
-async def stop_sandbox(sandbox_id: str) -> dict[str, bool]:
+async def stop_sandbox(sandbox_id: str, request: Request) -> dict[str, bool]:
+    _verify_api_key(request)
     sb = _get_sandbox(sandbox_id)
     shutil.rmtree(sb.dir, ignore_errors=True)
     _instances.pop(sandbox_id, None)
