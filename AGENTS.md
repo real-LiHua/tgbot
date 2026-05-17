@@ -24,30 +24,45 @@ go run ./cmd/bot/            # 运行 bot（需要先启动 docker-agent）
 
 前后端分离架构：
 
-```
-┌──────────────────┐   SSE 流 (HTTP)   ┌──────────────────────────┐
-│  Bot (Go 客户端)  │ ◄──────────────► │  Docker Agent API Server │
-│                  │  POST /api/sessions│                          │
-│  - gotgproto     │  /:id/agent/agent │  - AI 模型调用           │
-│    (MTProto)     │                    │  - Agent 循环管理         │
-│  - 接收 Telegram  │                   │  - 会话管理 (SQLite)     │
-│    消息           │                   │  - Tool 编排分发          │
-│  - 内联键盘        │                   └──────────┬───────────────┘
-│  - 执行 Telegram  │                               │ MCP / HTTP
-│    工具           │                               ▼
-│  - MCP 服务器      │                  ┌──────────────────────┐
-│    (/mcp SSE)     │◄─────────────────│  Bot MCP/HTTP Server  │
-│  - OpenAPI 兼容    │                  │  /mcp (SSE)           │
-│    (/api/openapi)  │                  │  /api/openapi.json    │
-└──────────────────┘                   └──────────────────────┘
+```mermaid
+graph TB
+    subgraph Bot["Bot (Go 客户端)"]
+        direction TB
+        B1["gotgproto (MTProto)"]
+        B2["接收 Telegram 消息"]
+        B3["内联键盘"]
+        B4["执行 Telegram 工具"]
+        B5["MCP 服务器 (/mcp SSE)"]
+        B6["OpenAPI 兼容 (/api/openapi)"]
+    end
 
-┌──────────────────────────────────────────────────────────────────┐
-│  New API (AI Gateway)                    端口 3000               │
-│  - 多模型聚合与分发                                             │
-│  - 用量统计与成本核算                                           │
-│  - 密钥管理与速率限制                                           │
-│  - OpenAI / Claude / Gemini 兼容 API                             │
-└──────────────────────────────────────────────────────────────────┘
+    subgraph Agent["Docker Agent API Server"]
+        direction TB
+        A1["AI 模型调用"]
+        A2["Agent 循环管理"]
+        A3["会话管理 (SQLite)"]
+        A4["Tool 编排分发"]
+    end
+
+    subgraph MCP["Bot MCP/HTTP Server"]
+        direction TB
+        M1["/mcp (SSE)"]
+        M2["/api/openapi.json"]
+    end
+
+    subgraph Gateway["New API (AI Gateway) — 端口 3000"]
+        direction TB
+        G1["多模型聚合与分发"]
+        G2["用量统计与成本核算"]
+        G3["密钥管理与速率限制"]
+        G4["OpenAI / Claude / Gemini 兼容 API"]
+    end
+
+    Bot <-->|"SSE 流 (HTTP)"| Agent
+    Agent -->|"MCP / HTTP"| MCP
+    MCP -.->|"Bot 内部端点"| Bot
+    Agent -.->|"AI 提供商"| Gateway
+    Bot -.->|"AI 提供商"| Gateway
 ```
 
 - **Bot** (`cmd/bot/` + `internal/`): Go 客户端，使用 **gotgproto** 通过 MTProto 连接 Telegram。处理消息收发、格式化、内联键盘以及 Telegram 工具的执行。通过 MCP 协议（SSE）暴露工具供 Docker Agent 调用，同时保留 OpenAPI 兼容端点。

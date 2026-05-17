@@ -26,30 +26,44 @@ A modern Telegram bot built with [gotgproto](https://github.com/celestix/gotgpro
 
 ## Architecture
 
-```
-┌──────────────────┐   SSE stream       ┌──────────────────────────┐
-│  Bot (Go client)  │ ◄──────────────►  │  Docker Agent API Server │
-│                   │  POST /api/sessions│                          │
-│  - gotgproto      │  /:id/agent/agent │  - AI model inference    │
-│    (MTProto)      │                    │  - Agent loop            │
-│  - Telegram I/O   │                    │  - Session persistence   │
-│  - Inline         │                    │  - Tool orchestration    │
-│    keyboards      │                    └──────────┬───────────────┘
-│  - MCP server     │                               │ MCP / HTTP
-│  - OpenAPI compat  │                               ▼
-│    endpoint       │                  ┌──────────────────────┐
-└──────────────────┘                  │  Bot MCP/HTTP Server  │
-                                        │  /mcp (SSE)           │
-                                        │  /api/openapi.json    │
-                                        └──────────────────────┘
+```mermaid
+graph TB
+    subgraph Bot["Bot (Go client)"]
+        direction TB
+        B1["gotgproto (MTProto)"]
+        B2["Telegram I/O"]
+        B3["Inline keyboards"]
+        B4["MCP server"]
+        B5["OpenAPI compat endpoint"]
+    end
 
-┌──────────────────────────────────────────────────────────────────┐
-│  New API (AI Gateway)                       port 3000            │
-│  - Multi-model aggregation & distribution                       │
-│  - Usage analytics & cost accounting                            │
-│  - Key management & rate limiting                               │
-│  - OpenAI / Claude / Gemini compatible API                      │
-└──────────────────────────────────────────────────────────────────┘
+    subgraph Agent["Docker Agent API Server"]
+        direction TB
+        A1["AI model inference"]
+        A2["Agent loop"]
+        A3["Session persistence"]
+        A4["Tool orchestration"]
+    end
+
+    subgraph MCP["Bot MCP/HTTP Server"]
+        direction TB
+        M1["/mcp (SSE)"]
+        M2["/api/openapi.json"]
+    end
+
+    subgraph Gateway["New API (AI Gateway) — port 3000"]
+        direction TB
+        G1["Multi-model aggregation & distribution"]
+        G2["Usage analytics & cost accounting"]
+        G3["Key management & rate limiting"]
+        G4["OpenAI / Claude / Gemini compatible API"]
+    end
+
+    Bot <-->|"SSE stream"| Agent
+    Agent -->|"MCP / HTTP"| MCP
+    MCP -.->|"Bot internal endpoint"| Bot
+    Agent -.->|"AI provider"| Gateway
+    Bot -.->|"AI provider"| Gateway
 ```
 
 Docker Agent manages AI sessions and tool orchestration. When it needs to call a Telegram API method, it uses MCP protocol (or OpenAPI fallback) to call the Bot's tool server, which executes the actual Telegram API call via MTProto.
