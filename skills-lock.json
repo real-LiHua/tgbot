@@ -7,12 +7,6 @@
       "skillPath": "skills/ai/SKILL.md",
       "computedHash": "b7d6eefe1574591da1f2940ada540cda96abf2faab28a47dbeb42d89c9817fa9"
     },
-    "aiogram-framework": {
-      "source": "narumiruna/telegram-bot",
-      "sourceType": "github",
-      "skillPath": ".codex/skills/aiogram-framework/SKILL.md",
-      "computedHash": "496006ca2bfd4eb8e4ff481a5a4aa0ea40deff8b4b8fb3d54ece0e4b55bcdfd8"
-    },
     "context7-mcp": {
       "source": "upstash/context7",
       "sourceType": "github",
@@ -48,6 +42,12 @@
       "sourceType": "github",
       "skillPath": "productivity/skills/memory-management/SKILL.md",
       "computedHash": "8178769b6efe5ef38b1e0eeea682b83ff79a1e3b93acb96aa203ebcfb96d9b98"
+    },
+    "pyrefly-type-coverage": {
+      "source": "pytorch/pytorch",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/pyrefly-type-coverage/SKILL.md",
+      "computedHash": "9f72febb0a33b7c7de53bd7474cd6415ac4e40af93b157cf5bfe0cc21312823c"
     },
     "pytest-coverage": {
       "source": "github/awesome-copilot",

@@ -9,7 +9,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, HTTPException, Request
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Sandbox")
