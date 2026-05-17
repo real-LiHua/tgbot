@@ -1,0 +1,27 @@
+[Unit]
+Description=tgbot AI Gateway (New API)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Label=tgbot
+ContainerName=tgbot-new-api
+Image=docker.io/calciumion/new-api:latest
+Network=tgbot.network
+EnvironmentFile=%E/tgbot/.env
+
+PublishPort=3000:3000
+
+Volume=new-api-data.volume:/data
+
+HealthCmd=curl -sf http://localhost:3000/api/status
+HealthInterval=15s
+HealthRetries=3
+HealthStartPeriod=10s
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

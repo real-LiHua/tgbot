@@ -16,9 +16,11 @@ go run ./cmd/bot/            # 运行 bot（需要先启动 docker-agent）
 | 运行 docker-agent | `docker-agent serve api agent.yaml` |
 | 安装依赖 | `go mod tidy` |
 | 添加依赖 | `go get <package>` |
-| Docker | `docker compose up --build -d` |
-| Docker（仅沙盒） | `docker compose up --build -d sandbox` |
-| Docker（仅 New API） | `docker compose up --build -d new-api` |
+| Podman Compose | `podman-compose up -d` |
+| Podman Quadlet（部署） | `bash pod/podman-deploy.sh quadlet` |
+| Podman Quadlet（自启） | `bash pod/podman-deploy.sh enable` |
+| Podman 构建 | `bash pod/podman-deploy.sh build` |
+| Podman 状态 | `bash pod/podman-deploy.sh status` |
 
 ## 架构
 
@@ -100,7 +102,7 @@ graph TB
 
 ## 包管理器
 
-使用 **go mod**（Go 内置）。锁定文件: `go.sum`。Docker 使用 `go build`。
+使用 **go mod**（Go 内置）。锁定文件: `go.sum`。使用 `go build`。
 
 ## 添加处理器
 
@@ -142,14 +144,77 @@ Bot 端 Docker Agent HTTP 客户端：
 - `ListModels()` — 获取可用模型列表
 - 每个 chat 独立会话，通过 `sessions` 字典缓存
 
+## Podman 架构
+
+Podman 容器架构，提供两种部署模式：**podman-compose**（开发/简易）和 **Quadlet**（生产/systemd 集成）。
+
+```mermaid
+graph TB
+    subgraph Host["Podman Host"]
+        direction TB
+
+        subgraph Net["tgbot.network (10.89.0.0/24)"]
+            direction TB
+            C1["tgbot-bot<br/>Go 客户端 + MCP"]
+            C2["tgbot-docker-agent<br/>AI 引擎"]
+            C3["tgbot-sandbox<br/>代码执行沙盒"]
+            C4["tgbot-new-api<br/>AI 网关 :3000"]
+        end
+
+        subgraph Vol["持久化"]
+            V1["new-api-data volume"]
+        end
+
+        subgraph Sys["Systemd (Quadlet 模式)"]
+            S1["tgbot-bot.service"]
+            S2["tgbot-docker-agent.service"]
+            S3["tgbot-sandbox.service"]
+            S4["tgbot-new-api.service"]
+        end
+
+        C4 --> V1
+    end
+
+    C1 <-->|"SSE 流"| C2
+    C2 -->|"MCP / HTTP"| C1
+    C1 -->|"代码执行"| C3
+    C2 -.->|"AI 提供商"| C4
+    C1 -.->|"AI 提供商"| C4
+```
+
+- **无守护进程**: Podman 无需中心 daemon，每个容器由 `conmon` 直接管理
+- **Rootless**: 默认以非 root 用户运行，降低攻击面
+- **Quadlet**: `.container` 文件转为 systemd service，开机自启、日志统一管理
+- **网络**: 所有容器通过 `tgbot.network`（bridge）互通，容器名即 DNS 名
+关键文件：
+
+| 文件 | 用途 |
+|---|---|
+| `podman-compose.yml` | Podman Compose 部署定义 |
+| `pod/tgbot.network` | Quadlet 网络定义 |
+| `pod/tgbot-*.container` | Quadlet 容器定义（各服务一个文件） |
+| `pod/vol-new-api-data.volume` | Quadlet 卷定义 |
+| `pod/podman-deploy.sh` | 部署管理脚本（构建/启动/停止/日志） |
+
+对比：
+
+| 特性 | Podman Compose | Podman Quadlet |
+|---|---|---|
+| 守护进程 | 无 | 无 |
+| 权限 | rootless | rootless |
+| 服务管理 | podman-compose | systemd --user |
+| 开机自启 | restart: always | systemctl --user enable |
+| 日志 | podman-compose logs | journalctl --user |
+| 适用场景 | 开发/兼容 | 生产部署 |
+
 ## 沙盒服务 (`sandbox/`)
 
-独立的代码执行沙盒服务，运行在 Docker 中：
+独立的代码执行沙盒服务：
 
 - `sandbox/main.py` — FastAPI 服务，兼容 `vercel.sandbox` 接口风格
 - `sandbox/Dockerfile` — 基于 python:3.14-slim + nodejs
 - `internal/sandbox/client.go` — 与 bot 集成的 Go 客户端
-- docker-compose 配置: 1 副本, 安全限制 (cap_drop ALL, no-new-privileges, read_only, tmpfs /tmp:64m), 资源限制 (1 CPU, 256MB)
+- podman-compose 配置: 安全限制 (cap_drop ALL, no-new-privileges, read_only, tmpfs /tmp:64m), 资源限制 (1 CPU, 256MB)
 
 ## 配置 (`internal/config/config.go`)
 

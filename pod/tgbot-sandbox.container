@@ -1,0 +1,29 @@
+[Unit]
+Description=tgbot Code Execution Sandbox
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Label=tgbot
+ContainerName=tgbot-sandbox
+Image=localhost/tgbot-sandbox:latest
+Network=tgbot.network
+EnvironmentFile=%E/tgbot/.env
+
+DropCapability=ALL
+AddCapability=AUDIT_WRITE
+SecurityLabelDisable=true
+ReadOnly=true
+Tmpfs=/tmp:size=64m
+
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"
+HealthInterval=10s
+HealthRetries=3
+HealthStartPeriod=5s
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

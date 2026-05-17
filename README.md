@@ -9,7 +9,7 @@
 
 </div>
 
-A modern Telegram bot built with [gotgproto](https://github.com/celestix/gotgproto) (MTProto) and [Model Context Protocol Go SDK](https://github.com/modelcontextprotocol/go-sdk), powered by [Docker Agent](https://docker.github.io/docker-agent/) for AI inference and tool orchestration. Designed for production deployments with Docker, graceful shutdown, health checks, and rolling updates.
+A modern Telegram bot built with [gotgproto](https://github.com/celestix/gotgproto) (MTProto) and [Model Context Protocol Go SDK](https://github.com/modelcontextprotocol/go-sdk), powered by [Docker Agent](https://docker.github.io/docker-agent/) for AI inference and tool orchestration. Deployed with Podman (rootless, daemonless), with Quadlet systemd integration for production.
 
 ## Features
 
@@ -19,10 +19,10 @@ A modern Telegram bot built with [gotgproto](https://github.com/celestix/gotgpro
 - **AI chat** — Non-command messages are routed to Docker Agent for intelligent, tool-assisted responses
 - **MCP protocol** — Exposes Telegram tools via Model Context Protocol (SSE) for AI agent consumption
 - **OpenAPI compatible** — Backward-compatible OpenAPI 3.0 endpoint for existing tool consumers
-- **Code sandbox** — Isolated code execution via Docker (with security hardening)
+- **Code sandbox** — Isolated code execution in a Podman container (with security hardening)
 - **Health check endpoint** — Exposes `/health` on port 8080 for container orchestration
 - **Graceful shutdown** — Handles SIGTERM/SIGINT signals for clean container termination
-- **Docker-ready** — Multi-stage Go Dockerfile with Compose deployment
+- **Podman-ready** — Rootless deployment with podman-compose or Quadlet systemd integration
 
 ## Architecture
 
@@ -104,19 +104,22 @@ docker-agent serve api agent.yaml &
 go run ./cmd/bot/
 ```
 
-## Docker
+## Podman Deployment
 
-### Build and run (all services)
+Two deployment modes available:
+
+### Podman Compose (development)
 
 ```bash
-docker compose up --build -d
+podman-compose up -d
 ```
 
-### Individual services
+### Quadlet + systemd (production)
 
 ```bash
-docker compose up --build -d sandbox    # Sandbox only
-docker compose up --build -d new-api    # AI Gateway only
+bash pod/podman-deploy.sh enable    # Build, deploy, enable on boot
+bash pod/podman-deploy.sh quadlet   # Build and deploy only
+bash pod/podman-deploy.sh status    # Show running containers
 ```
 
 ## Project structure
@@ -144,11 +147,16 @@ docker compose up --build -d new-api    # AI Gateway only
 │   ├── main.py                    # FastAPI code execution sandbox
 │   └── requirements.txt
 ├── agent.yaml                     # Docker Agent configuration
-├── docker-agent.Dockerfile        # Docker Agent Docker image
+├── docker-agent.Dockerfile        # Docker Agent container image
 ├── dynamic/
 │   └── handlers/                  # Hot-loaded handler persistence
 ├── Dockerfile                     # Multi-stage Go build
-├── docker-compose.yml             # Production Compose config (bot + agent + sandbox + new-api)
+├── podman-compose.yml             # Podman Compose deployment
+├── pod/
+│   ├── tgbot.network              # Quadlet network definition
+│   ├── tgbot-*.container          # Quadlet container definitions
+│   ├── vol-new-api-data.volume    # Quadlet volume definition
+│   └── podman-deploy.sh           # Deployment management script
 ├── go.mod                         # Go module definition
 ├── go.sum                         # Go dependency lock file
 └── .env.example                   # Environment variable template
@@ -186,7 +194,7 @@ Non-command messages are automatically handled by the **AI chat** system — rou
 
 ## Sandbox service
 
-The sandbox service provides isolated code execution in a Docker container:
+The sandbox service provides isolated code execution in a Podman container:
 
 ```
 POST /create              Create a new sandbox session

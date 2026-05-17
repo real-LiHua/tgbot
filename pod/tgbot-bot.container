@@ -1,0 +1,19 @@
+[Unit]
+Description=tgbot Telegram Bot (Go client + MCP server)
+After=tgbot-docker-agent.service tgbot-sandbox.service
+Requires=tgbot-docker-agent.service tgbot-sandbox.service
+BindsTo=tgbot-docker-agent.service tgbot-sandbox.service
+
+[Container]
+Label=tgbot
+ContainerName=tgbot-bot
+Image=localhost/tgbot-bot:latest
+Network=tgbot.network
+EnvironmentFile=%E/tgbot/.env
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

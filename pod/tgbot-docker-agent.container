@@ -1,0 +1,23 @@
+[Unit]
+Description=tgbot Docker Agent (AI engine)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Label=tgbot
+ContainerName=tgbot-docker-agent
+Image=localhost/tgbot-docker-agent:latest
+Network=tgbot.network
+EnvironmentFile=%E/tgbot/.env
+
+HealthCmd=curl -sf http://localhost:8080/api/ping
+HealthInterval=15s
+HealthRetries=3
+HealthStartPeriod=10s
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
