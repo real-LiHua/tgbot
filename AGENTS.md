@@ -18,6 +18,7 @@ go run ./cmd/bot/            # 运行 bot（需要先启动 docker-agent）
 | 添加依赖 | `go get <package>` |
 | Docker | `docker compose up --build -d` |
 | Docker（仅沙盒） | `docker compose up --build -d sandbox` |
+| Docker（仅 New API） | `docker compose up --build -d new-api` |
 
 ## 架构
 
@@ -39,11 +40,20 @@ go run ./cmd/bot/            # 运行 bot（需要先启动 docker-agent）
 │  - OpenAPI 兼容    │                  │  /mcp (SSE)           │
 │    (/api/openapi)  │                  │  /api/openapi.json    │
 └──────────────────┘                   └──────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  New API (AI Gateway)                    端口 3000               │
+│  - 多模型聚合与分发                                             │
+│  - 用量统计与成本核算                                           │
+│  - 密钥管理与速率限制                                           │
+│  - OpenAI / Claude / Gemini 兼容 API                             │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 - **Bot** (`cmd/bot/` + `internal/`): Go 客户端，使用 **gotgproto** 通过 MTProto 连接 Telegram。处理消息收发、格式化、内联键盘以及 Telegram 工具的执行。通过 MCP 协议（SSE）暴露工具供 Docker Agent 调用，同时保留 OpenAPI 兼容端点。
 - **Docker Agent** (`agent.yaml` + 二进制): Docker Agent API Server，管理 AI 模型、Agent 循环、会话持久化。通过 MCP toolset 导入 Bot 暴露的 Telegram 工具，在需要时调用 Bot 执行。
 - **Sandbox** (`sandbox/`): 独立的代码执行沙盒（FastAPI），用于隔离执行 AI 提议的工具代码。
+- **New API** (`new-api` 服务): AI 网关层，聚合多个 AI 提供商 (OpenAI, Anthropic, Google, DeepSeek 等) 为统一 OpenAI 兼容 API。Bot 和 Docker Agent 均可将其作为 AI provider 端点使用，提供密钥管理、用量统计、速率限制等功能。
 
 通信协议：Bot 创建 Docker Agent 会话，通过 `POST /api/sessions/:id/agent/agent` 发送消息并接收 SSE 事件流。当需要调用 Telegram 工具时，Docker Agent 通过 MCP 协议或 OpenAPI HTTP 调用 Bot 端点，Bot 执行后返回结果。
 
@@ -137,6 +147,10 @@ Bot 端 Docker Agent HTTP 客户端：
 | `AI_MODEL_ID` | provider 默认 | 模型 ID 覆盖 |
 | `DOCKER_AGENT_URL` | `http://localhost:8080` | Docker Agent 地址 |
 | `LISTEN_ADDR` | `0.0.0.0:8080` | HTTP 服务器监听地址 |
+| `NEW_API_SESSION_SECRET` | - | New API 会话密钥（多实例必需） |
+| `NEW_API_CRYPTO_SECRET` | - | New API 加密密钥（使用 Redis 时必需） |
+| `NEW_API_SQL_DSN` | - | New API 外部数据库连接串（默认 SQLite） |
+| `NEW_API_REDIS_CONN_STRING` | - | New API Redis 连接串 |
 
 ## 动态目录 (`dynamic/`)
 

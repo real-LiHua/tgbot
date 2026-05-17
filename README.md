@@ -14,6 +14,7 @@ A modern Telegram bot built with [gotgproto](https://github.com/celestix/gotgpro
 ## Features
 
 - **Async-first** — Built on Go with gotgproto for non-blocking Telegram MTProto messaging
+- **AI gateway** — [New API](https://github.com/QuantumNous/new-api) for unified multi-model management, key aggregation, and usage analytics
 - **AI integration** — OpenAI / Anthropic / AI Gateway providers via Docker Agent
 - **AI chat** — Non-command messages are routed to Docker Agent for intelligent, tool-assisted responses
 - **MCP protocol** — Exposes Telegram tools via Model Context Protocol (SSE) for AI agent consumption
@@ -38,12 +39,22 @@ A modern Telegram bot built with [gotgproto](https://github.com/celestix/gotgpro
 │  - OpenAPI compat  │                               ▼
 │    endpoint       │                  ┌──────────────────────┐
 └──────────────────┘                  │  Bot MCP/HTTP Server  │
-                                       │  /mcp (SSE)           │
-                                       │  /api/openapi.json    │
-                                       └──────────────────────┘
+                                        │  /mcp (SSE)           │
+                                        │  /api/openapi.json    │
+                                        └──────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  New API (AI Gateway)                       port 3000            │
+│  - Multi-model aggregation & distribution                       │
+│  - Usage analytics & cost accounting                            │
+│  - Key management & rate limiting                               │
+│  - OpenAI / Claude / Gemini compatible API                      │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 Docker Agent manages AI sessions and tool orchestration. When it needs to call a Telegram API method, it uses MCP protocol (or OpenAPI fallback) to call the Bot's tool server, which executes the actual Telegram API call via MTProto.
+
+[New API](https://github.com/QuantumNous/new-api) serves as the AI gateway layer, aggregating multiple AI providers (OpenAI, Anthropic, Google, DeepSeek, etc.) behind a unified OpenAI-compatible API. Bot and Docker Agent can both connect to it as their AI provider endpoint.
 
 ## Getting started
 
@@ -81,16 +92,17 @@ go run ./cmd/bot/
 
 ## Docker
 
-### Build and run
+### Build and run (all services)
 
 ```bash
 docker compose up --build -d
 ```
 
-### Sandbox service only
+### Individual services
 
 ```bash
-docker compose up --build -d sandbox
+docker compose up --build -d sandbox    # Sandbox only
+docker compose up --build -d new-api    # AI Gateway only
 ```
 
 ## Project structure
@@ -122,7 +134,7 @@ docker compose up --build -d sandbox
 ├── dynamic/
 │   └── handlers/                  # Hot-loaded handler persistence
 ├── Dockerfile                     # Multi-stage Go build
-├── docker-compose.yml             # Production Compose config
+├── docker-compose.yml             # Production Compose config (bot + agent + sandbox + new-api)
 ├── go.mod                         # Go module definition
 ├── go.sum                         # Go dependency lock file
 └── .env.example                   # Environment variable template
@@ -142,6 +154,10 @@ docker compose up --build -d sandbox
 | `SANDBOX_URL` | No | Sandbox service URL (default: `http://localhost:8080`) |
 | `SANDBOX_API_KEY` | No | API key for Sandbox authentication |
 | `LISTEN_ADDR` | No | HTTP server listen address (default: `0.0.0.0:8080`) |
+| `NEW_API_SESSION_SECRET` | No | New API session secret (required for multi-instance) |
+| `NEW_API_CRYPTO_SECRET` | No | New API encryption secret (required with Redis) |
+| `NEW_API_SQL_DSN` | No | New API external DB connection string (default: SQLite) |
+| `NEW_API_REDIS_CONN_STRING` | No | New API Redis connection string |
 
 ## Available commands
 

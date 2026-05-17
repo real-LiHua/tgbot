@@ -72,6 +72,37 @@ services:
         parallelism: 1
         order: stop-first
 
+  new-api:
+    image: calciumion/new-api:latest
+    environment:
+      - TZ=Asia/Shanghai
+      - SESSION_SECRET=${NEW_API_SESSION_SECRET:-}
+      - CRYPTO_SECRET=${NEW_API_CRYPTO_SECRET:-}
+      - SQL_DSN=${NEW_API_SQL_DSN:-}
+      - REDIS_CONN_STRING=${NEW_API_REDIS_CONN_STRING:-}
+      - STREAMING_TIMEOUT=300
+    volumes:
+      - new_api_data:/data
+    ports:
+      - "3000:3000"
+    networks:
+      - external
+      - internal
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/api/status"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: "512M"
+
   sandbox:
     build:
       context: sandbox
@@ -105,3 +136,4 @@ services:
 
 volumes:
   dynamic_handlers:
+  new_api_data:
